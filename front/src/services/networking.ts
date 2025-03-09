@@ -1,4 +1,4 @@
-import { BackEndPoints, Todo } from "./types";
+import { BackEndPoint, Todo } from "./types";
 
 
 const hsUrl = 'http://localhost:8080/';
@@ -17,7 +17,7 @@ const requestErrorResponse = (suspect='') => {
     });
 };
 
-async function getJSON (address: BackEndPoints) {
+async function getJSON (address: BackEndPoint) {
     const response = await fetch(hsUrl + address);
     if (!response.ok){
         throw new Error('Network response was not ok')
@@ -29,7 +29,7 @@ async function netGetTodos() {
     return (await getJSON('getTodos'));
 };
 
-async function modifyingQuery (address: BackEndPoints, clientTodo: Todo | [Todo] | string) {
+async function modifyingQuery (address: BackEndPoint, clientTodo: Todo | [Todo] | string) {
     var method = "";
     if (["postTodo", "postTodos"].includes(address)) {
         method = "POST"

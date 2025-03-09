@@ -1,4 +1,5 @@
-import {openDB, deleteDB} from 'idb'
+import {openDB, deleteDB, IDBPDatabase} from 'idb'
+import { Todo, BackEndPoint } from './types';
 
 const todoDBName = 'todoDb';
 const todoDBVersion = 1;
@@ -8,19 +9,19 @@ async function openTodoDB () {
     return await openDB(todoDBName, todoDBVersion);
 };
 
-function notEmpty (cacheResult) {
+function notEmpty (cacheResult: string | any[]): boolean {
     if (Array.isArray(cacheResult) && cacheResult.length != 0) 
         return true
     else return false;
 };
 
-function createTodoStore (db) {
+function createTodoStore (db: IDBPDatabase<unknown>) {
     const todoListStore = db.createObjectStore(todoListStoreName, { autoIncrement: true });
     todoListStore.createIndex('id', 'id', {unique: true});
 };
 
 async function createTodoDB () {
-    const dbPromise = await openDB(todoDBName, todoDBVersion, {
+    await openDB(todoDBName, todoDBVersion, {
         upgrade (db, oldVersion) {
             switch (oldVersion) {
                 case 0: 
@@ -38,7 +39,7 @@ async function createTodoDB () {
     });
 };
 
-async function cacheFailedTodo (failedMethod, todo) {
+async function cacheFailedTodo (failedMethod: BackEndPoint, todo: Todo) {
     const db = await openTodoDB();
     await db.add(failedMethod, todo);
 }
@@ -53,7 +54,7 @@ async function dbGetTodoList () {
     return await db.getAll(todoListStoreName)
 };
 
-async function cacheTodoList (todos) {
+async function cacheTodoList (todos: [Todo]) {
     const db = await openTodoDB();
     const tx = db.transaction(todoListStoreName, 'readwrite')
     await Promise.all([
@@ -62,12 +63,12 @@ async function cacheTodoList (todos) {
     ])
 };
 
-async function dbAddTodo(todo) {
+async function dbAddTodo(todo: Todo) {
     const db = await openTodoDB();
     await db.add(todoListStoreName, todo);
 }
 
-async function dbPutTodo (todo) {
+async function dbPutTodo (todo: Todo) {
     const db = await openTodoDB();
     const tx = db.transaction(todoListStoreName, 'readwrite');
     const store = tx.store;
@@ -80,7 +81,7 @@ async function dbPutTodo (todo) {
     tx.done;
 };
 
-async function dbDelTodo (todoId) {
+async function dbDelTodo (todoId: string) {
     const db = await openTodoDB();
     const tx = db.transaction(todoListStoreName, 'readwrite');
     const store = tx.store;
