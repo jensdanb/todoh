@@ -4,7 +4,7 @@ import { netPutTodo } from "../../../services/networking";
 import { dbPutTodo } from "../../../services/databasing";
 import { mutationFunction } from "../../../services/common";
 
-function Todo(props) {
+function TodoC(props) {
     
     const [isEditing, setIsEditing] = useState(false);
     
@@ -114,5 +114,5 @@ function ViewTodo({props, toggleTaskCompleted, setIsEditing}) {
 }
 
   
-export default Todo;
+export default TodoC;
   

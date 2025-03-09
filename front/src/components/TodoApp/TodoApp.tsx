@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react"; 
-import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { Todo } from "../../services/types";
 import { netGetTodos, netPostTodo, netDelTodo, } from "../../services/networking";
 import { cacheTodoList, dbGetTodoList, dbAddTodo, dbPutTodo, dbDelTodo } from "../../services/databasing";
 import { mutationFunction } from "../../services/common";
-import { Todo, Form, FilterButton, PwaController } from "./Components";
+import { TodoC, Form, FilterButton, PwaController } from "./Components/";
 
 
 
@@ -35,7 +35,7 @@ function TodoApp({initialFilter}) {
 
     const addTodoMutation = useMutation({
         mutationFn: async (name) => {
-            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, knownUnSynced: true }; 
+            const newTask = new Todo(name); 
             return await mutationFunction(newTask, netPostTodo, dbAddTodo);
         },
         onSettled: invalidateTodos,
@@ -56,7 +56,7 @@ function TodoApp({initialFilter}) {
     const [taskFilter, setTaskFilter] = useState(initialFilter);
     
     function todoComponent(todoData) { 
-        return <Todo
+        return <TodoC
                     id={todoData.id}
                     key={todoData.id}
                     name={todoData.name}

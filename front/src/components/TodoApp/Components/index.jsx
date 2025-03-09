@@ -1,6 +1,6 @@
 import Form from "./Form";
 import FilterButton from "./FilterButton";
-import Todo from "./Todo";
+import TodoC from "./TodoC";
 import PwaController from "./PwaController";
 
-export {Form, FilterButton, Todo, PwaController}
+export {Form, FilterButton, TodoC, PwaController}
