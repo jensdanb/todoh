@@ -1,15 +1,17 @@
 import {useState} from "react"; 
 import { useMutation } from "@tanstack/react-query";
+
+import { Todo } from "../../../services/types";
 import { netPutTodo } from "../../../services/networking";
 import { dbPutTodo } from "../../../services/databasing";
 import { mutationFunction } from "../../../services/common";
 
-function TodoC(props) {
+function TodoC(props: unknown) {
     
     const [isEditing, setIsEditing] = useState(false);
     
     const putTodoMutation = useMutation({
-        mutationFn: async (newTask) => {
+        mutationFn: async (newTask: Todo) => {
             return await mutationFunction(newTask, netPutTodo, dbPutTodo);
         },
         onSettled: props.invalidateTodoList
@@ -33,14 +35,14 @@ function EditingTodo({props, submitEdit, setIsEditing}) {
 
     const [newName, setNewName] = useState(props.name);
 
-    function handleTyping(event) {
+    function handleTyping(event: { target: { value: string; }; }) {
         setNewName(event.target.value);
     }
 
     function submitEditValid(event) {
         event.preventDefault();
         if (newName != "") {
-            const newTask = { ...props.todoData, name: newName, knownUnSynced: true };
+            const newTask = new Todo(newName, props.id, props.completed, true);
             submitEdit(newTask);
             setIsEditing(false);
         };
