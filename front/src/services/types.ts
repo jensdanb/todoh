@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 
-export type BackEndPoint = "serverConnected" | "postTodo" | "postTodos" | "getTodos" | "delTodo" | "putTodo"
+export type BackEndPoint = "serverConnected" | "postTodo" | "postTodos" | "getTodos" | "delTodo" | "putTodo";
 
 export class Todo {
     id: string; 
@@ -13,5 +13,5 @@ export class Todo {
         this.name = name; 
         this.completed = completed; 
         this.knownUnSynced = knownUnSynced;
-      }
-} 
+      };
+};

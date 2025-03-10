@@ -8,11 +8,10 @@ import { mutationFunction } from "../../services/common";
 import { TodoC, Form, FilterButton, PwaController } from "./Components/";
 
 
-
 const FILTER_MAP = {
     All: () => true,
-    Active: (task) => !task.completed,
-    Completed: (task) => task.completed,
+    Active: (task: Todo) => !task.completed,
+    Completed: (task: Todo) => task.completed,
   };
 
 const FILTER_NAMES = Object.keys(FILTER_MAP);
@@ -34,7 +33,7 @@ function TodoApp({initialFilter}) {
     
 
     const addTodoMutation = useMutation({
-        mutationFn: async (name) => {
+        mutationFn: async (name: string) => {
             const newTask = new Todo(name); 
             return await mutationFunction(newTask, netPostTodo, dbAddTodo);
         },
@@ -42,7 +41,7 @@ function TodoApp({initialFilter}) {
     });
 
     const delTodoMutation = useMutation({
-        mutationFn: async (id) => {
+        mutationFn: async (id: string) => {
             return await netDelTodo(id)
                 .then(() => {dbDelTodo(id)})
         },
@@ -55,7 +54,7 @@ function TodoApp({initialFilter}) {
         
     const [taskFilter, setTaskFilter] = useState(initialFilter);
     
-    function todoComponent(todoData) { 
+    function todoComponent(todoData: Todo): TodoC { 
         return <TodoC
                     id={todoData.id}
                     key={todoData.id}
