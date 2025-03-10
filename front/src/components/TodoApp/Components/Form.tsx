@@ -6,7 +6,7 @@ function Form(props) {
     
     const [name, setName] = useState("");
 
-    function handleTyping(event) {
+    function handleTyping(event: { target: { value: string; }; }) {
         setName(event.target.value);
     }
 
