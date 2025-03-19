@@ -5,7 +5,7 @@ import { Todo } from "../../services/types";
 import { netGetTodos, netPostTodo, netDelTodo, } from "../../services/networking";
 import { cacheTodoList, dbGetTodoList, dbAddTodo, dbPutTodo, dbDelTodo } from "../../services/databasing";
 import { mutationFunction } from "../../services/common";
-import { TodoC, Form, FilterButton, PwaController } from "./Components/";
+import { TodoC, Form, FilterButton, PwaController } from "./Components";
 
 
 const FILTER_MAP = {
