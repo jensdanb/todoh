@@ -19,14 +19,13 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 function TodoApp({initialFilter}) {
 
     const [onlineMode, setOnlineMode] = useState(true);
-    const [actualOnline, setActualOnline] = useState(false);
 
     const queryClient = useQueryClient()
 
-    // todos :: [{ completed :: bool, id :: string, name :: string, knownUnSynced :: bool }]
-    const todos = useQuery({ 
+    const {isPending: getTodosPending, isError: getTodosErrored, data: todos, error: getTodosError} = useQuery({ 
         queryKey: ['todos'], 
-        queryFn: netGetTodos
+        queryFn: netGetTodos, 
+        networkMode: "always"
     });
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
@@ -48,9 +47,18 @@ function TodoApp({initialFilter}) {
         onSettled: invalidateTodos,
       })
     
-
-    // const { isPending, submittedAt, variables, mutate, isError } = putTodoMutation
-        
+    const pwaController = 
+        <PwaController 
+            intendedOnline={onlineMode} 
+            toggleOnline={() => {
+                if (!onlineMode) {invalidateTodos()}
+                setOnlineMode(onlineMode ? false : true)
+            }}
+            netPending={getTodosPending}
+            netErrored={getTodosErrored}
+            netError={getTodosError}
+        />    
+      
         
     const [taskFilter, setTaskFilter] = useState(initialFilter);
     
@@ -67,7 +75,7 @@ function TodoApp({initialFilter}) {
                 />
     }
 
-    const taskList = todos.data
+    const taskList = todos
         ?.filter(FILTER_MAP[taskFilter])
         ?.map(todoComponent);
     
@@ -80,20 +88,13 @@ function TodoApp({initialFilter}) {
             />
     );
 
-    const headingText = `${todos.data?.length} tasks, ${todos.data?.filter(FILTER_MAP["Active"]).length} remaining`;
+    const headingText = `${todos?.length} tasks, ${todos?.filter(FILTER_MAP["Active"]).length} remaining`;
     
     return (
         <>
         <div className="todoapp stack-large content">
             <h1>TodoMatic v2</h1>
-            <PwaController 
-                intendedOnline={onlineMode} 
-                toggleOnline={() => {
-                    if (!onlineMode) {invalidateTodos()}
-                    setOnlineMode(onlineMode ? false : true)
-                }}
-                //actualOnline={actualOnline} 
-                />
+            {pwaController}
 
             <Form onSubmit={addTodoMutation.mutate}/>
 
