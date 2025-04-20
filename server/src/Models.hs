@@ -6,7 +6,7 @@ module Models where
 import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import qualified Data.Text.Lazy as L
-import Data.List (find)
+import Data.List (find, intersect, null)
 import Control.Concurrent.STM (TVar, newTVarIO, atomically, modifyTVar, readTVarIO)
 import Data.Maybe (isJust)
 
@@ -66,13 +66,17 @@ putTodo newTodo = modifyTodoList (map putter)
   where 
     putter :: Todo -> Todo 
     putter oldTodo = 
-      if oldTodo.id == newTodo.id then newTodo { knownUnSynced = False} 
-      else oldTodo
+      if oldTodo.id == newTodo.id 
+        then newTodo { knownUnSynced = False} 
+        else oldTodo
 
 replaceTodo :: Todo -> TodoVar -> IO ()
 replaceTodo newTodo = modifyTodoList (map replaceIfSameId)
   where
-    replaceIfSameId oldTodo = if oldTodo.id == newTodo.id then newTodo else oldTodo
+    replaceIfSameId oldTodo = 
+      if oldTodo.id == newTodo.id 
+        then newTodo 
+        else oldTodo
 
 
 matchingId :: UUID -> Todo -> Bool
@@ -82,7 +86,10 @@ findById :: UUID -> TodoList -> Maybe Todo
 findById uuid = find (matchingId uuid)
 
 overlap :: [Todo] -> [Todo] -> Bool
-overlap todos todos' = any (==True) $ map (\todo -> isJust $ findById todo.id todos) todos'
+overlap todos todos' = not . null $ ids `intersect` ids'
+  where 
+    ids = map (.id) todos
+    ids' = map (.id) todos'
 
 overlap' :: TodoVar -> [Todo] -> IO Bool
 overlap' tVar todos = do 
