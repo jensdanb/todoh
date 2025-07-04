@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react"; 
+import { useState, JSX, FC } from "react"; 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Todo } from "../../services/types";
 import { netGetTodos, netPostTodo, netDelTodo, } from "../../services/networking";
-import { cacheTodoList, dbGetTodoList, dbAddTodo, dbPutTodo, dbDelTodo } from "../../services/databasing";
+import { dbAddTodo, dbDelTodo } from "../../services/databasing";
 import { mutationFunction } from "../../services/common";
 import { TodoC, Form, FilterButton, PwaController } from "./Components";
 
 
+// type FilterFunction = (todo: Todo | null) => boolean
 const FILTER_MAP = {
     All: () => true,
     Active: (task: Todo) => !task.completed,
@@ -16,13 +17,14 @@ const FILTER_MAP = {
 
 const FILTER_NAMES = Object.keys(FILTER_MAP);
 
-function TodoApp({initialFilter}) {
+interface TodoAppProps { initialFilter: string}
+const TodoApp:FC<TodoAppProps> = ({initialFilter}) => {
 
     const [onlineMode, setOnlineMode] = useState(true);
 
     const queryClient = useQueryClient()
 
-    const {isPending: getTodosPending, isError: getTodosErrored, data: todos, error: getTodosError} = useQuery({ 
+    const {isPending: getTodosPending, isError: getTodosErrored, data: todos} = useQuery({ 
         queryKey: ['todos'], 
         queryFn: netGetTodos, 
         networkMode: "always"
@@ -56,13 +58,13 @@ function TodoApp({initialFilter}) {
             }}
             netPending={getTodosPending}
             netErrored={getTodosErrored}
-            netError={getTodosError}
+            // netError={getTodosError}
         />    
       
         
     const [taskFilter, setTaskFilter] = useState(initialFilter);
     
-    function todoComponent(todoData: Todo): TodoC { 
+    function todoComponent(todoData: Todo): JSX.Element { 
         return <TodoC
                     id={todoData.id}
                     key={todoData.id}

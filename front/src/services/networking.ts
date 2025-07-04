@@ -3,12 +3,16 @@ import { BackEndPoint, Todo } from "./types";
 
 const hsUrl = 'http://localhost:8080/';
 
+// http://172.17.0.1:8080/
+
+/*
 const networkErrorResponse = (response: Response) => {
     return new Response("Network error happened: " + response.status + ' ' + response.statusText, {
         status: 408,
         headers: { "Content-Type": "text/plain" },
     });
 };
+*/
 
 const requestErrorResponse = (suspect='') => {
     return new Response("Invalid request: " + suspect, {

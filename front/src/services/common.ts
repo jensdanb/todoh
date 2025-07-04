@@ -1,4 +1,4 @@
-import { Todo, BackEndPoint } from './types';
+import { Todo, } from './types';
 /*
 import { netGetTodos } from "./networking";
 import { cacheTodoList } from "./databasing";
@@ -10,7 +10,7 @@ const mutationFunction = async (todo: Todo,
 ) => {
     return await netFunction(todo)
         .then(async () => {await dbFunction({...todo, knownUnSynced: false})})
-        .catch(async (error: Error) => {await dbFunction(todo)})
+        .catch(async () => {await dbFunction(todo)})
 };
 /*
 const cacheServerTodos = async () => {

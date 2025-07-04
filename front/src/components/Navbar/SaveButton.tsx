@@ -1,4 +1,4 @@
-function SaveButton(props) {
+function SaveButton() {
     return (
       <button 
         type="button" 

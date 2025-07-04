@@ -1,5 +1,5 @@
 
-function PwaController ({intendedOnline, toggleOnline, netPending, netErrored, netError}) {
+function PwaController ({intendedOnline, toggleOnline, netPending, netErrored, /*netError*/ }) {
     const msgOnlineMode = intendedOnline ? "Online mode" : "Offline mode";
 
     function networkMsg () {

@@ -1,5 +1,5 @@
-import {openDB, deleteDB, IDBPDatabase} from 'idb'
-import { Todo, BackEndPoint } from './types';
+import {openDB, IDBPDatabase} from 'idb'
+import { Todo, } from './types';
 
 const todoDBName = 'todoDb';
 const todoDBVersion = 1;
@@ -8,13 +8,13 @@ const todoListStoreName = 'todoList'
 async function openTodoDB () {
     return await openDB(todoDBName, todoDBVersion);
 };
-
+/*
 function notEmpty (cacheResult: string | any[]): boolean {
     if (Array.isArray(cacheResult) && cacheResult.length != 0) 
         return true
     else return false;
 };
-
+*/
 function createTodoStore (db: IDBPDatabase<unknown>) {
     const todoListStore = db.createObjectStore(todoListStoreName, { autoIncrement: true });
     todoListStore.createIndex('id', 'id', {unique: true});
@@ -38,7 +38,7 @@ async function createTodoDB () {
         }
     });
 };
-
+/*
 async function cacheFailedTodo (failedMethod: BackEndPoint, todo: Todo) {
     const db = await openTodoDB();
     await db.add(failedMethod, todo);
@@ -48,7 +48,7 @@ async function getUnsyncedTodos () {
     const db = await openTodoDB();
     return await db.getAll('posts')
 };
-
+*/
 async function dbGetTodoList () {
     const db = await openTodoDB();
     return await db.getAll(todoListStoreName)

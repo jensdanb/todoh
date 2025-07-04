@@ -1,4 +1,4 @@
-import {useState} from "react"; 
+import {FC, useState} from "react"; 
 import { useMutation } from "@tanstack/react-query";
 
 import { Todo } from "../../../services/types";
@@ -6,7 +6,18 @@ import { netPutTodo } from "../../../services/networking";
 import { dbPutTodo } from "../../../services/databasing";
 import { mutationFunction } from "../../../services/common";
 
-function TodoC(props: unknown) {
+interface TodoCProps {
+    id: string;
+    key: string;
+    name: string;
+    completed: boolean;
+    knownUnSynced: boolean;
+    todoData: Todo;
+    invalidateTodoList: any
+    deleteTask:any
+}
+
+const TodoC:FC<TodoCProps> = (props) => {
     
     const [isEditing, setIsEditing] = useState(false);
     
