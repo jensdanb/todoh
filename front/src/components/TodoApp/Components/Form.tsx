@@ -1,8 +1,13 @@
-import {useState} from "react"; 
+import { UseMutateFunction } from "@tanstack/react-query";
+import {FC, useState} from "react"; 
 
 // Child component of TodoApp
 
-function Form(props) {
+interface FormProps {
+    onSubmit: UseMutateFunction<void, Error, string, unknown>
+}
+
+const Form:FC<FormProps> = (props) => {
     
     const [name, setName] = useState("");
 
@@ -10,7 +15,7 @@ function Form(props) {
         setName(event.target.value);
     }
 
-    function handleSubmit(event) {
+    function handleSubmit(event: { preventDefault: () => void; }) {
         event.preventDefault();
         if (name != "") {
             props.onSubmit(name);

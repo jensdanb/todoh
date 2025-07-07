@@ -42,7 +42,13 @@ const TodoC:FC<TodoCProps> = (props) => {
                 />;
   }
 
-function EditingTodo({props, submitEdit, setIsEditing}) {
+interface EditingTodoProps {
+    props: TodoCProps;
+    submitEdit: any;
+    setIsEditing: any;
+}
+
+const EditingTodo:FC<EditingTodoProps> = ({props, submitEdit, setIsEditing}) => {
 
     const [newName, setNewName] = useState(props.name);
 
@@ -50,7 +56,7 @@ function EditingTodo({props, submitEdit, setIsEditing}) {
         setNewName(event.target.value);
     }
 
-    function submitEditValid(event) {
+    function submitEditValid(event: { preventDefault: () => void; }) {
         event.preventDefault();
         if (newName != "") {
             const newTask = new Todo(newName, props.id, props.completed, true);
@@ -90,7 +96,13 @@ function EditingTodo({props, submitEdit, setIsEditing}) {
         );
 }
 
-function ViewTodo({props, toggleTaskCompleted, setIsEditing}) {
+interface ViewTodoProps {
+    props: TodoCProps;
+    toggleTaskCompleted: any;
+    setIsEditing: any;
+}
+
+const ViewTodo:FC<ViewTodoProps> = ({props, toggleTaskCompleted, setIsEditing}) => {
     return (
         <div className="todo stack-small">
             <div className="c-cb">

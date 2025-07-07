@@ -1,5 +1,13 @@
+import { FC } from "react";
 
-function PwaController ({intendedOnline, toggleOnline, netPending, netErrored, /*netError*/ }) {
+interface PWAProps {
+    intendedOnline: boolean;
+    toggleOnline: any;
+    netPending: boolean;
+    netErrored: boolean;
+}
+
+const PwaController:FC<PWAProps> =  ({intendedOnline, toggleOnline, netPending, netErrored, /*netError*/ }) => {
     const msgOnlineMode = intendedOnline ? "Online mode" : "Offline mode";
 
     function networkMsg () {

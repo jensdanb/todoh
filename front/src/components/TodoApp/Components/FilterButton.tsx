@@ -1,4 +1,13 @@
-function FilterButton(props) {
+import { FC } from "react";
+
+interface FilterButtonProps {
+    key: string; 
+    name: string;
+    isPressed: Boolean;
+    setTaskFilter: (arg0: any) => void;
+}
+
+const FilterButton:FC<FilterButtonProps> = (props) => {
     return (
       <button 
         type="button" 

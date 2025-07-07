@@ -8,14 +8,7 @@ import { mutationFunction } from "../../services/common";
 import { TodoC, Form, FilterButton, PwaController } from "./Components";
 
 
-// type FilterFunction = (todo: Todo | null) => boolean
-const FILTER_MAP = {
-    All: () => true,
-    Active: (task: Todo) => !task.completed,
-    Completed: (task: Todo) => task.completed,
-  };
-
-const FILTER_NAMES = Object.keys(FILTER_MAP);
+const FILTER_NAMES = ["All", "Active", "Completed"];
 
 interface TodoAppProps { initialFilter: string}
 const TodoApp:FC<TodoAppProps> = ({initialFilter}) => {
@@ -77,8 +70,14 @@ const TodoApp:FC<TodoAppProps> = ({initialFilter}) => {
                 />
     }
 
+    const filterTaskCompleted = (task: Todo, chosenFilter: string) => {
+        if (chosenFilter=="All") {return true}
+        else if (chosenFilter=="Active") {return !task.completed}
+        else if (chosenFilter=="Completed") {return task.completed}
+    }
+
     const taskList = todos
-        ?.filter(FILTER_MAP[taskFilter])
+        ?.filter((todo: Todo) => filterTaskCompleted(todo, taskFilter))
         ?.map(todoComponent);
     
     const filterButtons = FILTER_NAMES.map((name) => 
@@ -90,7 +89,7 @@ const TodoApp:FC<TodoAppProps> = ({initialFilter}) => {
             />
     );
 
-    const headingText = `${todos?.length} tasks, ${todos?.filter(FILTER_MAP["Active"]).length} remaining`;
+    const headingText = `${todos?.length} tasks, ${todos?.filter((todo: Todo) => filterTaskCompleted(todo, "Active")).length} remaining`;
     
     return (
         <>
