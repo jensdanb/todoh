@@ -20,6 +20,13 @@ services:
     build: ./server
     ports: 
       - 8080:8080
+
+  nginx: 
+    build: ./proxy
+    ports: 
+      - 8081:80
+    volumes: 
+      - ./proxy/html/:/usr/share/nginx/html/
     
 
 # The commented out section below is an example of how to define a PostgreSQL
