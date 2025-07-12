@@ -7,8 +7,14 @@ import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (cors, simpleCors, simpleCorsResourcePolicy, CorsResourcePolicy(..), simpleHeaders, Origin)
 import Network.Wai (Middleware)
 
-localAddr :: Origin
+localAddr, hetznerHsDockerTest :: Origin
 localAddr = "http://localhost:"
+hetznerHsDockerTest = "46.62.152.102:"
+
+hosts, ports :: [Origin]
+hosts = [localAddr, hetznerHsDockerTest]
+ports = ["5173", "5050"]
+allHostPorts = [host<>port | host <- hosts, port <- ports]
 
 runServer :: Middleware -> Application -> Int -> IO ()
 runServer mWare app portNr = run portNr (mWare app)
@@ -17,7 +23,7 @@ runServerSimpleCors :: Application -> Int -> IO ()
 runServerSimpleCors = runServer simpleCors
 
 myCorsPolicy :: Network.Wai.Middleware.Cors.CorsResourcePolicy
-myCorsPolicy = simpleCorsResourcePolicy { corsOrigins = Just (map (localAddr <>) ["5173", "5050"],  True)
+myCorsPolicy = simpleCorsResourcePolicy { corsOrigins = Just (allHostPorts, True)
                                         , corsMethods = ["OPTIONS", "GET", "PUT", "POST", "DELETE"]
                                         , corsRequestHeaders = ["Authorization", "Content-Type"] }
 
