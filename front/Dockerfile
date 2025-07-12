@@ -13,7 +13,7 @@ FROM node:${NODE_VERSION}-alpine
 # Uncomment to use production node environment.
 #ENV NODE_ENV production
 
-# RUN npm install serve -g
+RUN npm install serve -g
 
 
 WORKDIR /app
@@ -24,11 +24,11 @@ RUN npm i
 # Copy the rest of the source files into the image.
 COPY . .
 
-# RUN npm run build
+RUN npm run build
 
 # Expose the port that the application listens on.
 EXPOSE 3000
 
 # Run the application.
-# CMD serve -s dist
-CMD npm run dev
+CMD serve -s dist
+# CMD npm run dev
