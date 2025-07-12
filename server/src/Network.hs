@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Plumbing where
+module Network where
 
 import Servant (Application)
 import qualified Network.Wai.Handler.Warp as Warp
@@ -9,7 +9,7 @@ import Network.Wai (Middleware)
 
 localAddr, hetznerHsDockerTest :: Origin
 localAddr = "http://localhost:"
-hetznerHsDockerTest = "46.62.152.102:"
+hetznerHsDockerTest = "http://46.62.152.102:"
 
 hosts, ports :: [Origin]
 hosts = [localAddr, hetznerHsDockerTest]
