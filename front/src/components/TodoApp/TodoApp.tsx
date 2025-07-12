@@ -2,7 +2,7 @@ import { useState, JSX, FC } from "react";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Todo } from "../../services/types";
-import { netGetTodos, netPostTodo, netDelTodo, } from "../../services/networking";
+import { netGetTodos, netPostTodo, netDelTodo, } from "../../services/network";
 import { dbAddTodo, dbDelTodo } from "../../services/databasing";
 import { mutationFunction } from "../../services/common";
 import { TodoC, Form, FilterButton, PwaController } from "./Components";

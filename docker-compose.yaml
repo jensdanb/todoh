@@ -16,7 +16,7 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
 
-  api: 
+  hsserver: 
     build: ./server
     ports: 
       - 8080:8080

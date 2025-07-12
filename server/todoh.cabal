@@ -58,7 +58,7 @@ library
     import:           warnings
     exposed-modules:  Api, 
                       Models, 
-                      Plumbing
+                      Network
     -- other-modules:    
     default-extensions: 
                   NoFieldSelectors

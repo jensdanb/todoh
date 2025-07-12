@@ -2,7 +2,7 @@ import {FC, useState} from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { Todo } from "../../../services/types";
-import { netPutTodo } from "../../../services/networking";
+import { netPutTodo } from "../../../services/network";
 import { dbPutTodo } from "../../../services/databasing";
 import { mutationFunction } from "../../../services/common";
 
