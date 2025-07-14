@@ -6,14 +6,19 @@ import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (cors, simpleCors, simpleCorsResourcePolicy, CorsResourcePolicy(..), simpleHeaders, Origin)
 import Network.Wai (Middleware)
+import Data.ByteString.Char8 (pack)
 
-localAddr, hetznerHsDockerTest :: Origin
-localAddr = "http://localhost:"
-hetznerHsDockerTest = "http://46.62.152.102:"
+localHost, localIp, hetznerHsDockerTest :: String
+localHost = "localhost"
+localIp = "192.168.1.86"
+hetznerHsDockerTest = "46.62.152.102"
+
+toOrigin :: String -> Origin
+toOrigin = pack . ("http://" <>)
 
 hosts, ports :: [Origin]
-hosts = [localAddr, hetznerHsDockerTest]
-ports = ["5173", "5050"]
+hosts = map toOrigin [localHost, localIp, hetznerHsDockerTest]
+ports = [":5173", ":5050", ":80", ":443", ""]
 allHostPorts = [host<>port | host <- hosts, port <- ports]
 
 runServer :: Middleware -> Application -> Int -> IO ()
