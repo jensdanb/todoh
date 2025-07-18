@@ -94,7 +94,7 @@ const TodoApp:FC<TodoAppProps> = ({initialFilter}) => {
     return (
         <>
         <div className="todoapp stack-large content">
-            <h1>TodoMatic v2</h1>
+            <h1>To-Doh!</h1>
             {pwaController}
 
             <Form onSubmit={addTodoMutation.mutate}/>

@@ -11,9 +11,9 @@ const PwaController:FC<PWAProps> =  ({intendedOnline, toggleOnline, netPending, 
     const msgOnlineMode = intendedOnline ? "Online mode" : "Offline mode";
 
     function networkMsg () {
-        if (netPending) {return "Waiting for network response"};
-        if (netErrored) {return "Tried to connect, but failed"};
-        return "Success";
+        if (netPending) {return "Backend: Waiting for response."};
+        if (netErrored) {return "Backend: No response. Check internet connection and authentication, retry and contact support"};
+        return "Backend: Got response.";
     }
 
     const msgError = networkMsg()
