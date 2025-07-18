@@ -1,10 +1,10 @@
 import { BackEndPoint, Todo } from "./types";
 
-// const hsLocal = 'http://localhost:8080/';
-const hsLocalIp = 'http://192.168.1.86:80/api/'
-// const hsServer = 'http://46.62.152.102:8080/';
+// const hsLocal = 'http://localhost:80/api/';
+// const hsLocalIp = 'http://192.168.1.86:80/api/'
+const hsServer = 'http://46.62.152.102:80/api/';
 
-const hsUrl = hsLocalIp;
+const hsUrl = hsServer;
 
 /*
 const networkErrorResponse = (response: Response) => {
