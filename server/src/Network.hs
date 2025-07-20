@@ -6,7 +6,7 @@ import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (cors, simpleCors, simpleCorsResourcePolicy, CorsResourcePolicy(..), simpleHeaders, Origin)
 import Network.Wai (Middleware)
-import Data.ByteString.Char8 (pack)
+import Data.ByteString.Char8 (pack, unpack)
 
 localHost, localIp, hetznerHsDockerTest, jensDNS :: String
 localHost = "localhost"
@@ -14,11 +14,20 @@ localIp = "192.168.1.86"
 hetznerHsDockerTest = "46.62.152.102"
 jensDNS = "jensdanbolt.no"
 
-toOrigin :: String -> Origin
-toOrigin = pack . ("http://" <>)
+toOrigin, toOriginSSL :: String -> Origin
+toOrigin    = pack . ("http://" <>)
+toOriginSSL = pack . ("https://" <>)
 
-hosts, ports :: [Origin]
-hosts = map toOrigin [localHost, localIp, hetznerHsDockerTest, jensDNS]
+fromOrigin :: Origin -> String 
+fromOrigin = dropHttp . unpack
+    where 
+        dropHttp :: String -> String 
+        dropHttp ('h':'t':'t':'p':':':'/':'/':address) = address
+        dropHttp ('h':'t':'t':'p':'s':':':'/':'/':address) = address
+        dropHttp address = address
+
+hosts, ports, allHostPorts :: [Origin]
+hosts = [toOriginSSL jensDNS] <> map toOrigin [localHost, localIp, hetznerHsDockerTest, jensDNS]
 ports = [":5173", ":5050", ":80", ":443", ""]
 allHostPorts = [host<>port | host <- hosts, port <- ports]
 

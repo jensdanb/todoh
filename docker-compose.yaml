@@ -10,16 +10,16 @@
 services:
   client:
     build: ./front
-    ports:
-      - 5050:3000
+    # ports:
+    #   - 5050:3000 
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
 
   hsserver: 
     build: ./server
-    ports: 
-      - 8080:8080
+    # ports: 
+    #   - 8080:8080
 
   proxy: 
     build: ./proxy
