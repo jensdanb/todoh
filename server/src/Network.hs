@@ -8,11 +8,10 @@ import Network.Wai.Middleware.Cors (cors, simpleCors, simpleCorsResourcePolicy, 
 import Network.Wai (Middleware)
 import Data.ByteString.Char8 (pack, unpack)
 
-localHost, localIp, hetznerHsDockerTest, jensDNS :: String
-localHost = "localhost"
-localIp = "192.168.1.86"
-hetznerHsDockerTest = "46.62.152.102"
-jensDNS = "jensdanbolt.no"
+hostsLocal, hostsHetzner, hostsDNS :: [String]
+hostsLocal = ["localhost", "192.168.1.86"]
+hostsHetzner = ["46.62.152.102"] 
+hostsDNS = map (<> "jensdanbolt.no") ["", "todo.", "todoh."]
 
 toOrigin, toOriginSSL :: String -> Origin
 toOrigin    = pack . ("http://" <>)
@@ -27,7 +26,7 @@ fromOrigin = dropHttp . unpack
         dropHttp address = address
 
 hosts, ports, allHostPorts :: [Origin]
-hosts = [toOriginSSL jensDNS] <> map toOrigin [localHost, localIp, hetznerHsDockerTest, jensDNS]
+hosts = ( map toOriginSSL hostsDNS ) <> ( map toOrigin $ hostsLocal <> hostsHetzner )
 ports = [":5173", ":5050", ":80", ":443", ""]
 allHostPorts = [host<>port | host <- hosts, port <- ports]
 
