@@ -1,0 +1,110 @@
+* {
+    --bg1-color: hsl(188, 100%, 97%);
+    --bg1-punch-color: hsl(188, 50%, 55%);
+    --shadow-light-color: hsla(0, 0%, 50%, 0.123);
+    --shadow-mid-color: hsla(0, 0%, 20%, 0.25);
+    --shadow-dark-color: hsla(0, 0%, 0%, 0.5);
+
+    --shadow-size: 0.7px 1px 4px;
+    --s1: 0.06rem;
+    --s2: 0.1rem;
+    --s3: 0.14rem;
+    --s4: 0.2rem;
+    --s5: 0.28rem;
+    --s6: 0.4rem;
+    --s7: 0.56rem;
+    --s8: 0.8rem;
+    --s9: 1.1rem;
+    --s10: 1.5rem;
+    --s11: 2rem;
+    --s12: 2.8rem;
+    --s13: 4rem;
+    --s14: 5.6rem;
+    --s15: 8rem;
+    --s16: 11rem;
+    --s17: 16rem;
+    --s18: 22rem;
+    --s19: 32rem;
+    --s20: 45rem;
+    --s21: 64rem;
+    --s22: 90rem;
+    --s23: 128rem;
+}
+
+/* User-chosen themes. To be implemented  */
+.light {
+  color-scheme: light;
+  --bg: hsla(136, 100%, 66%, 0.664);
+  --fg: black;
+  color: var(--fg);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: black;
+  --fg: white;
+  color: var(--fg);
+}
+
+
+/* Default overrides */
+html {
+  background-color: var(--bg1-color);
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+ul {
+    margin-top: -0.5rem;
+    margin-bottom: var(--s7);
+    padding-left: var(--s9);
+}
+
+button {
+    cursor: pointer;
+    padding: var(--s7) var(--s8) var(--s6);
+    text-transform: capitalize;
+    border-radius: var(--s6);
+    border-color: var(--shadow-dark-color);
+}
+
+.aria-btn[aria-current="true"] {
+    border-color: black;
+    box-shadow: var(--shadow-size) var(--shadow-dark-color);
+    -webkit-text-stroke-width: 0.015em;
+}
+
+.checkbox {
+    scale: 1.2;
+}
+
+/* Classes */
+.container, 
+.card,
+.card2,
+.card-small {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s7);
+    box-shadow: var(--shadow-size) var(--shadow-light-color);
+}
+
+.container {
+    width: max-content;
+    padding:var(--s10);
+}
+
+.card, .card2 {
+    width: auto;
+    padding:var(--s8);
+}
+
+.card-small {
+    width: auto;
+    padding: var(--s1);
+    gap: var(--s1);
+}
+
+.group-horizontal-btns {
+    flex-direction: row;
+}
+

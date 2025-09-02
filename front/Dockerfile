@@ -6,14 +6,14 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-ARG NODE_VERSION=23
+ARG NODE_VERSION=24
 
 FROM node:${NODE_VERSION}-alpine
 
 # Uncomment to use production node environment.
 #ENV NODE_ENV production
 
-RUN npm install serve -g
+# RUN npm install serve -g
 
 
 WORKDIR /app
@@ -30,5 +30,6 @@ RUN npm run build
 EXPOSE 3000
 
 # Run the application.
-CMD serve -s dist
+# CMD serve -s dist
+CMD node build
 # CMD npm run dev
