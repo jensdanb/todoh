@@ -23,7 +23,7 @@ data Todo = Todo
     { id :: UUID
     , name :: Name
     , completed :: Bool
-    , knownUnSynced :: Bool
+    , syncStatus :: L.Text
     } deriving (Eq, Show, Generic)
 
 instance ToJSON Todo
@@ -46,7 +46,7 @@ initialize = newTVarIO []
 --- 
 
 markSynced :: Todo -> Todo 
-markSynced todo = todo{knownUnSynced=False}
+markSynced todo = todo{ syncStatus="From server" }
 
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
@@ -67,7 +67,7 @@ putTodo newTodo = modifyTodoList (map putter)
     putter :: Todo -> Todo 
     putter oldTodo = 
       if oldTodo.id == newTodo.id 
-        then newTodo { knownUnSynced = False} 
+        then newTodo { syncStatus = "From server"} 
         else oldTodo
 
 replaceTodo :: Todo -> TodoVar -> IO ()
@@ -111,7 +111,7 @@ rename todo name = todo {name=name}
 --- 
 
 baseTodo :: Todo
-baseTodo = Todo {completed=False, knownUnSynced=True}
+baseTodo = Todo {completed=False, syncStatus="From server"}
 
 mock1, mock2, mock3, mock4 :: Todo
 mock1 = baseTodo {id="todo-1sgsgerjkg", name="Eat", completed=True}

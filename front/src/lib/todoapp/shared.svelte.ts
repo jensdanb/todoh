@@ -6,11 +6,11 @@ export type BackEndPoint = "serverConnected" | "postTodo" | "postTodos" | "getTo
 
 export type SyncStatus = "From server" | "From server and edited" | "Fresh fish" | "Posted"
 
-export class Task {
+export class Todo {
     id: string; 
     name: string;
     completed: boolean;
-    syncStatus : SyncStatus
+    syncStatus : SyncStatus;
 
     constructor(name: string, other?: {id?: string, completed?: boolean, syncStatus?: SyncStatus} ) {
         this.name = name; 
@@ -20,11 +20,11 @@ export class Task {
       };
 };
 
-export const todo_list: {todos: Task[]} = $state({todos: [new Task("Dummy")]});
+export const todo_list: {todos: Todo[]} = $state({todos: [new Todo("Dummy")]});
 
 // Local functions
 
-export function local_put(id: string, new_task: Task) {
+export function local_put(id: string, new_task: Todo) {
     todo_list.todos = todo_list.todos.map((task) => {
         if (task.id == id) {
             return {...new_task, id: id}
