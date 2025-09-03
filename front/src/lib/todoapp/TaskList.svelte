@@ -1,15 +1,15 @@
 <script lang="ts">
-    import { todo_filter, todo_list, Task, in_work } from "./shared.svelte";
+    import { todo_filter, todo_list, Todo, in_work } from "./shared.svelte";
     import TaskC from './TaskC.svelte';
 
-    let filterTaskCompleted = $derived((task: Task) => {
+    let filterTaskCompleted = $derived((task: Todo) => {
         if (todo_filter.selected=="All") {return true}
         else if (todo_filter.selected=="Pending") {return !task.completed}
         else if (todo_filter.selected=="Completed") {return task.completed}
     })
 
     let taskList = $derived(todo_list.todos
-        .filter((todo: Task) => filterTaskCompleted(todo)));
+        .filter((todo: Todo) => filterTaskCompleted(todo)));
 
 </script>
 

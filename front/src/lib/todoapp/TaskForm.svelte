@@ -1,9 +1,9 @@
 <script lang="ts" >
-    import { Task, todo_list, in_work } from "./shared.svelte";
+    import { Todo, todo_list, in_work } from "./shared.svelte";
 
     function handleSubmit() {
         if (in_work.new_task_name != ""){
-            todo_list.todos.push(new Task(in_work.new_task_name))
+            todo_list.todos.push(new Todo(in_work.new_task_name))
             in_work.new_task_name = ""
         };
     };
