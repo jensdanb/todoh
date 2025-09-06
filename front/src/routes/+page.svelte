@@ -1,5 +1,5 @@
 <script> 
-    import TodoApp from "$lib/todoapp/TodoApp.svelte";
+    import TodoApp from "./todoapp/TodoApp.svelte";
 </script>
 
 
