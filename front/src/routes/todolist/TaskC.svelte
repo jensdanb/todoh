@@ -1,54 +1,53 @@
 <script lang="ts">
-    import { todo_list, local_put } from "./shared.svelte";
-    let props = $props();
+    import { Todo } from '$lib/services/types.ts';
+    import { localPut, deleteTodo } from '$lib/services/database';
+    let { todo } = $props();
 
     type Mode = "Overview" | "Edit";
     let editMode: Mode = $state("Overview");
-    let editName: string = $state(props.name);
+    let editName: string = $state(todo.name);
 
 
     function onCheck() {
-        local_put(props.id, {...props, completed: !props.completed});
+        localPut(todo.id, {...todo, completed: !todo.completed});
     };
 
     function onDelete() {
-        todo_list.todos = todo_list.todos.filter(
-            (task) => task.id !== props.id
-        );
+        deleteTodo()
     };
 
-    function handleSubmit() {
-        local_put(props.id, {...props, name: editName});
+    /*function handleSubmit() {
+        local_put(todo.id, {...todo, name: editName});
         editMode = "Overview";
-    };
+    };*/
 </script>
 
 <div class="card-small">
     {#if editMode=="Overview"}
     <form>
         <input
-            id={props.id}
+            id={todo.id}
             type="checkbox"
-            checked={props.completed}
+            checked={todo.completed}
             onchange={onCheck} 
             class="checkbox"
         />
-        {props.name}
+        {todo.name}
     </form>
     <div>
         <button
-            id={props.id}
+            id={todo.id}
             onmousedown={() => editMode = "Edit"}>
             Edit
         </button>
         <button
-            id={props.id}
+            id={todo.id}
             onmousedown={onDelete}>
             Delete
         </button>
     </div>
     {:else} 
-        <form onsubmit={handleSubmit}>
+        <form >
             <input 
                 type="text"
                 id="new-todo-input"
@@ -61,7 +60,7 @@
             <button onmousedown={() => editMode = "Overview"} >
                 Cancel
             </button>
-            <button onmousedown={handleSubmit} >
+            <button >
                 Save
             </button>
         </div>

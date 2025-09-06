@@ -1,6 +1,5 @@
 import type { Cookies } from '@sveltejs/kit';
-import { getJSON, hsUrl } from '$lib/services/network.ts';
-import { netGetTodos } from './shared.network.svelte';
+import * as db from '$lib/services/database.ts';
 
 export function load({ cookies }: {cookies: Cookies}) {
     let id: string | undefined = cookies.get('userid');
@@ -11,6 +10,15 @@ export function load({ cookies }: {cookies: Cookies}) {
     }
 
     return {
-        todos: netGetTodos()
+        id: id,
+        todos: db.getTodos(id)
     };
 }
+
+export const actions = {
+	default: async ({ cookies, request }) => {
+		const data = await request.formData();
+		db.createTodo(cookies.get('userid'), data.get('description'));
+	}
+};
+

@@ -1,16 +1,18 @@
 <script lang="ts" >
-    import { Todo, todo_list, in_work } from "./shared.svelte";
+    import { in_work } from "./shared.svelte";
+
+    let { data } = $props();
 
     function handleSubmit() {
         if (in_work.new_task_name != ""){
-            todo_list.todos.push(new Todo(in_work.new_task_name))
+            data.todos.push(new Todo(in_work.new_task_name))
             in_work.new_task_name = ""
         };
     };
 </script>
 
 <div>
-    <form onsubmit={handleSubmit}>
+    <form method="POST">
         <label class="card">
             New todo: 
             <input 
@@ -21,7 +23,7 @@
                 bind:value={in_work.new_task_name}
                 autofocus
             />
-            <button onmousedown={handleSubmit} >
+            <button>
                 Add
             </button>
         </label>

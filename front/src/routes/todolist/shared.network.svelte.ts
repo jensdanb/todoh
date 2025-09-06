@@ -1,4 +1,5 @@
-import { Todo, BackEndPoint } from "./shared.svelte";
+import { BackEndPoint } from "./shared.svelte";
+import { Todo } from '$lib/services/database';
 import { hsUrl, getJSON } from "$lib/services/network";
 
 async function netGetTodos() {

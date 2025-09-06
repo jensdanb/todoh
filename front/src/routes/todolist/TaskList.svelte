@@ -1,15 +1,8 @@
 <script lang="ts">
-    import { todo_filter, todo_list, Todo, in_work } from "./shared.svelte";
+    import { todo_filter } from "./shared.svelte";
     import TaskC from './TaskC.svelte';
 
-    let filterTaskCompleted = $derived((task: Todo) => {
-        if (todo_filter.selected=="All") {return true}
-        else if (todo_filter.selected=="Pending") {return !task.completed}
-        else if (todo_filter.selected=="Completed") {return task.completed}
-    })
-
-    let taskList = $derived(todo_list.todos
-        .filter((todo: Todo) => filterTaskCompleted(todo)));
+    let { todos, filterTaskCompleted } = $props();
 
 </script>
 
@@ -34,10 +27,14 @@
             Completed
         </button>
     </div>
+
     <div>{todo_filter.selected} tasks:</div>
+
     <ul class="card2">
-		{#each taskList as todo (todo.id)}
-			<TaskC {...todo} />
+		{#each todos as todo (todo.id)}
+            {#if filterTaskCompleted(todo)}
+			    <TaskC {...todo} />
+            {/if}
 		{/each}
 	</ul>
 </div>
