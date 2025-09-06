@@ -1,6 +1,1 @@
-<script> 
-    import TodoApp from "./todoapp/TodoApp.svelte";
-</script>
-
-
-<TodoApp />
+<h1>home</h1>
