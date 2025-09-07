@@ -15,7 +15,6 @@ export function createTodo(userid: string, description: string) {
 	const todos: [Todo] = db.get(userid);
 
 	todos.push(new Todo(description));
-    console.log('Todos: ' + todos);
 }
 
 export function deleteTodo(userid: string, todoid: string) {
