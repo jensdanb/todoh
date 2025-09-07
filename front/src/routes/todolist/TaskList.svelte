@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { todo_filter } from "./shared.svelte";
+    import { todo_filter } from "./shared.svelte.ts";
     import TaskC from './TaskC.svelte';
 
     let { todos, filterTaskCompleted } = $props();
@@ -33,7 +33,7 @@
     <ul class="card2">
 		{#each todos as todo (todo.id)}
             {#if filterTaskCompleted(todo)}
-			    <TaskC {...todo} />
+			    <TaskC {todo} />
             {/if}
 		{/each}
 	</ul>

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Todo } from '$lib/services/types.ts';
+    import {todo_filter} from './shared.svelte';
     import Form from "./TaskForm.svelte"
     import TaskList from "./TaskList.svelte";
 
@@ -16,7 +17,7 @@
 <div class="container">
     <h1>Todo-List</h1>
     <Form />
-    <TaskList {...data.todos, filterTaskCompleted}/>
+    <TaskList todos={data.todos} {filterTaskCompleted}/>
 </div>
 
 <style>

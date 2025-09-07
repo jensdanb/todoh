@@ -1,4 +1,5 @@
-import { SyncStatus, Todo } from "./lib/services/types";
+import { Todo } from "$lib/services/types";
+import type {SyncStatus} from "$lib/services/types";
 import type { Transport } from '@sveltejs/kit';
 
 export const transport: Transport = {

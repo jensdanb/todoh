@@ -9,5 +9,5 @@ export const in_work: {new_task_name: string} = $state({new_task_name: ""});
 export type TodoFilter = "All" | "Pending" | "Completed";
 
 export const todo_filter: {selected: TodoFilter} = $state({
-    selected: "All"
+    selected: "All" as TodoFilter
 });

@@ -1,4 +1,4 @@
-import type { Cookies } from '@sveltejs/kit';
+import type { Cookies, Actions } from '@sveltejs/kit';
 import * as db from '$lib/services/database.ts';
 
 export function load({ cookies }: {cookies: Cookies}) {
@@ -10,15 +10,14 @@ export function load({ cookies }: {cookies: Cookies}) {
     }
 
     return {
-        id: id,
         todos: db.getTodos(id)
     };
 }
 
-export const actions = {
-	default: async ({ cookies, request }) => {
-		const data = await request.formData();
-		db.createTodo(cookies.get('userid'), data.get('description'));
+export const actions: Actions = {
+	create: async ({ cookies, request }) => {
+		const formData = await request.formData();
+		db.createTodo(cookies.get('userid') as string, formData.get('description') as string);
 	}
 };
 
