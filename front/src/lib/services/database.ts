@@ -13,7 +13,6 @@ export function getTodos(userid: string): [Todo] {
 
 export function createTodo(userid: string, description: string) {
 	const todos: [Todo] = db.get(userid);
-
 	todos.push(new Todo(description));
 }
 
