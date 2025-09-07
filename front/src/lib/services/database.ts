@@ -2,7 +2,7 @@
 // rather than in memory. But for now, we cheat.
 import { Todo } from "./types";
 
-const db = new Map<string, Todo>();
+const db = new Map<string, [Todo]>();
 
 export function getTodos(userid: string): [Todo] {
 	if (!db.get(userid)) {
@@ -12,13 +12,10 @@ export function getTodos(userid: string): [Todo] {
 }
 
 export function createTodo(userid: string, description: string) {
-	const todos = db.get(userid);
+	const todos: [Todo] = db.get(userid);
 
-	todos.push({
-		id: crypto.randomUUID(),
-		description,
-		done: false
-	});
+	todos.push(new Todo(description));
+    console.log('Todos: ' + todos);
 }
 
 export function deleteTodo(userid: string, todoid: string) {

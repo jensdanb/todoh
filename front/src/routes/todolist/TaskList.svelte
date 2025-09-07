@@ -3,7 +3,6 @@
     import TaskC from './TaskC.svelte';
 
     let { todos, filterTaskCompleted } = $props();
-
 </script>
 
 <div class="card">
