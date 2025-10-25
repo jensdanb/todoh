@@ -3,16 +3,13 @@
     import { enhance } from '$app/forms';
     import { localPut, deleteTodo } from '$lib/services/database';
     let { todo } = $props();
-    let todoS = $derived(JSON.stringify(todo));
+    let todoS: string = $derived(JSON.stringify(todo));
+    let isCompleted: boolean = $derived(todo.completed)
 
+    let myForm: HTMLFormElement;
     type Mode = "Overview" | "Edit";
     let editMode: Mode = $state("Overview");
     let editName: string = $state(todo.name);
-
-
-    function onCheck() {
-        localPut(todo.id, {...todo, completed: !todo.completed});
-    };
 
     /*function handleSubmit() {
         local_put(todo.id, {...todo, name: editName});
@@ -22,16 +19,18 @@
 
 <div class="card-small">
     {#if editMode=="Overview"}
-        <form>
+        <form bind:this={myForm} method="POST" action="?/toggle" use:enhance>
+            <input type="hidden" name="rename-id" value={todoS}/>
             <input
                 id={todo.id}
                 type="checkbox"
-                checked={todo.completed}
-                onchange={onCheck} 
+                bind:checked={isCompleted}
+                onchange={() => {myForm.requestSubmit()}}
                 class="checkbox"
             />
             {todo.name}
         </form>
+
         <form method="POST" action="?/delete" use:enhance>
             <input type="hidden" name="rename-id" value={todo.id}/>
             <button type="button"
@@ -43,7 +42,7 @@
             </button>
         </form>
     {:else} 
-        <form id="renameForm" method="POST" action="?/rename" 
+        <form method="POST" action="?/rename" 
         use:enhance={() => {editMode = "Overview"}}>
             <input 
                 type="text"

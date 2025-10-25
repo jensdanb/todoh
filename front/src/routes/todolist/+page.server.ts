@@ -67,9 +67,13 @@ export async function load({ cookies }: {cookies: Cookies}) {
 export const actions: Actions = {
 	create: async ({ cookies, request }) => {
 		const formData = await request.formData();
-        console.log(formData.get('description'));
         await netPostTodo(new Todo(formData.get('description') as string));
 	}, 
+    toggle: async ({cookies, request}) => {
+        const formData = await request.formData();
+        const todo: Todo = JSON.parse(formData.get('rename-id') as string);
+        await netPutTodo({...todo, completed: !todo.completed});
+    }, 
     rename: async ({cookies, request}) => {
         const formData = await request.formData();
         const todo: Todo = JSON.parse(formData.get('rename-id') as string);
