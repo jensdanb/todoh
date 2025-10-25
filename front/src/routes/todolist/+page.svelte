@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Todo } from '$lib/services/types.ts';
+    import { Todo } from '$lib/services/types';
     import {todo_filter} from './shared.svelte';
     import Form from "./TaskForm.svelte"
     import TaskList from "./TaskList.svelte";

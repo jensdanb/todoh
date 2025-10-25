@@ -1,10 +1,12 @@
 
-const hsLocal = 'http://localhost:80/api/';
-// const hsLocalIp = 'http://192.168.1.86:80/api/'
+const hsLocal = 'http://localhost:8080/';
+const hsProxy = 'http://localhost/api/';
+// const hsLocalIp = 'http://192.168.1.86:80/api/';
 // const hsServer = 'http://46.62.152.102:80/api/';
-// const hsProd = 'https://todo.jensdanbolt.no/api/'
+const hsDockerHost = 'http://host.docker.internal:80/api/'
+const hsProd = 'https://todo.jensdanbolt.no/api/'
 
-const hsUrl = hsLocal;
+const hsUrl = hsProxy;
 
 /*
 const networkErrorResponse = (response: Response) => {
@@ -24,11 +26,9 @@ const requestErrorResponse = (suspect='') => {
 
 async function getJSON (address: string) {
     const response = await fetch(hsUrl + address);
-    if (!response.ok){
-        throw new Error('Network response was not ok')
-    } 
-    else return response.json();
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
 };
 
 
-export { getJSON, hsUrl };
+export { getJSON, hsUrl, requestErrorResponse };

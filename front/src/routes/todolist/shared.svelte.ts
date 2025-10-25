@@ -1,7 +1,6 @@
 
 // Core
 
-export type BackEndPoint = "serverConnected" | "postTodo" | "postTodos" | "getTodos" | "delTodo" | "putTodo";
 
 export const in_work: {new_task_name: string} = $state({new_task_name: ""});
 

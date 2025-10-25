@@ -1,4 +1,4 @@
-export type SyncStatus = "From server" | "From server and edited" | "Fresh fish" | "Posted"
+export type SyncStatus = "FromServer" | "FromServerAndEdited" | "FreshFish" | "Posted"
 
 export class Todo {
     id: string; 
@@ -10,6 +10,6 @@ export class Todo {
         this.name = name; 
         this.id = other?.id ?? `todo-${crypto.randomUUID()}`; 
         this.completed = other?.completed ?? false; 
-        this.syncStatus = other?.syncStatus ?? "Fresh fish";
+        this.syncStatus = other?.syncStatus ?? "FreshFish";
       };
 };

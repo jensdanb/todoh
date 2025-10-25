@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { todo_filter } from "./shared.svelte.ts";
+    import { todo_filter } from "./shared.svelte";
     import TaskC from './TaskC.svelte';
 
     let { todos, filterTaskCompleted } = $props();
@@ -36,6 +36,8 @@
             {/if}
 		{/each}
 	</ul>
+    
+    <div>{todos.filter(filterTaskCompleted).length} tasks {todo_filter.selected}</div>
 </div>
 
 <style>
