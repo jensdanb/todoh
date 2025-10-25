@@ -75,6 +75,11 @@ export const actions: Actions = {
         const todo: Todo = JSON.parse(formData.get('rename-id') as string);
         const newDescription = formData.get('new name') as string;
         await netPutTodo({...todo, name: newDescription});
+    }, 
+    delete: async ({cookies, request}) => {
+        const formData = await request.formData();
+        const todoId: string = formData.get('rename-id') as string;
+        await netDelTodo(todoId);
     }
 };
 

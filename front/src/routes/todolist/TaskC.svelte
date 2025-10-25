@@ -14,10 +14,6 @@
         localPut(todo.id, {...todo, completed: !todo.completed});
     };
 
-    function onDelete() {
-        deleteTodo()
-    };
-
     /*function handleSubmit() {
         local_put(todo.id, {...todo, name: editName});
         editMode = "Overview";
@@ -36,18 +32,16 @@
             />
             {todo.name}
         </form>
-        <div>
-            <button
-                id={todo.id}
+        <form method="POST" action="?/delete" use:enhance>
+            <input type="hidden" name="rename-id" value={todo.id}/>
+            <button type="button"
                 onmousedown={() => editMode = "Edit"}>
                 Edit
             </button>
-            <button
-                id={todo.id}
-                onmousedown={onDelete}>
+            <button type="submit">
                 Delete
             </button>
-        </div>
+        </form>
     {:else} 
         <form id="renameForm" method="POST" action="?/rename" 
         use:enhance={() => {editMode = "Overview"}}>
