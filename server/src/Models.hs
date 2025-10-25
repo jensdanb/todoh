@@ -19,11 +19,17 @@ type TodoList = [Todo]
 type UUID = L.Text
 type Name = L.Text
 
+data SyncStatus = FromServer | FromServerAndEdited | FreshFish | Posted
+  deriving (Eq, Show, Generic)
+
+instance ToJSON SyncStatus
+instance FromJSON SyncStatus
+
 data Todo = Todo
     { id :: UUID
     , name :: Name
     , completed :: Bool
-    , syncStatus :: L.Text
+    , syncStatus :: SyncStatus
     } deriving (Eq, Show, Generic)
 
 instance ToJSON Todo
@@ -46,7 +52,7 @@ initialize = newTVarIO []
 --- 
 
 markSynced :: Todo -> Todo 
-markSynced todo = todo{ syncStatus="From server" }
+markSynced todo = todo{ syncStatus=FromServer }
 
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
@@ -67,7 +73,7 @@ putTodo newTodo = modifyTodoList (map putter)
     putter :: Todo -> Todo 
     putter oldTodo = 
       if oldTodo.id == newTodo.id 
-        then newTodo { syncStatus = "From server"} 
+        then newTodo { syncStatus=FromServer } 
         else oldTodo
 
 replaceTodo :: Todo -> TodoVar -> IO ()
@@ -111,7 +117,7 @@ rename todo name = todo {name=name}
 --- 
 
 baseTodo :: Todo
-baseTodo = Todo {completed=False, syncStatus="From server"}
+baseTodo = Todo {completed=False, syncStatus=FromServer}
 
 mock1, mock2, mock3, mock4 :: Todo
 mock1 = baseTodo {id="todo-1sgsgerjkg", name="Eat", completed=True}
@@ -122,4 +128,4 @@ mock4 = baseTodo {id="todo-efwpekkgwm", name="Repeat"}
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do
   insertTodos [mock1, mock2] todoVar
-  insertTodos [mock3, mock4] todoVar
+  insertTodos [mock3] todoVar

@@ -27,7 +27,7 @@ fromOrigin = dropHttp . unpack
 
 hosts, ports, allHostPorts :: [Origin]
 hosts = ( map toOriginSSL hostsDNS ) <> ( map toOrigin $ hostsLocal <> hostsHetzner )
-ports = [":5173", ":5050", ":80", ":443", ""]
+ports = [":5173", ":5050", ":3000", ":80", ":443", ""]
 allHostPorts = [host<>port | host <- hosts, port <- ports]
 
 runServer :: Middleware -> Application -> Int -> IO ()
