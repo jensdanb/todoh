@@ -13,7 +13,6 @@ const hsDockerExt = 'http://hsserver:8080/'
 const hsProd = 'https://todo.jensdanbolt.no/api/'
 const hsDockerHost = 'http://host.docker.internal:80/api/'
 
-
 // New way
 // For server-side requests
 const backendUrl = process.env.BACKEND_URL || 'http://hsserver:8080';
