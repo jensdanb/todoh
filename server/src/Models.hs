@@ -13,7 +13,7 @@ import Data.Maybe (isJust)
 --- 
 --- Definitions
 ---
-type TodoKeyValue = (UUID, Todo)
+-- type TodoKeyValue = (UUID, Todo)
 type TodoList = [Todo]
 
 type UUID = L.Text
@@ -32,8 +32,15 @@ data Todo = Todo
     , syncStatus :: SyncStatus
     } deriving (Eq, Show, Generic)
 
+
 instance ToJSON Todo
 instance FromJSON Todo
+
+data TodoValue = Name Name | Completed Bool | SyncStatus SyncStatus
+  deriving (Eq, Show, Generic)
+
+instance ToJSON TodoValue
+instance FromJSON TodoValue
 
 --- 
 --- State
@@ -51,8 +58,13 @@ initialize = newTVarIO []
 --- Logic
 --- 
 
+modTodo :: TodoValue -> Todo -> Todo
+modTodo (Name newVal) todo = todo {name=newVal}
+modTodo (Completed newVal) todo = todo {completed=newVal}
+modTodo (SyncStatus newVal) todo = todo {syncStatus=newVal}
+
 markSynced :: Todo -> Todo 
-markSynced todo = todo{ syncStatus=FromServer }
+markSynced = modTodo (SyncStatus FromServer)
 
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
@@ -75,15 +87,6 @@ putTodo newTodo = modifyTodoList (map putter)
       if oldTodo.id == newTodo.id 
         then newTodo { syncStatus=FromServer } 
         else oldTodo
-
-replaceTodo :: Todo -> TodoVar -> IO ()
-replaceTodo newTodo = modifyTodoList (map replaceIfSameId)
-  where
-    replaceIfSameId oldTodo = 
-      if oldTodo.id == newTodo.id 
-        then newTodo 
-        else oldTodo
-
 
 matchingId :: UUID -> Todo -> Bool
 matchingId uuid todo = uuid == todo.id
@@ -108,22 +111,26 @@ todoExists tVar todo = do
     let foundMatch = findById todo.id tList
     return $ isJust foundMatch
 
-
-rename :: Todo -> Name -> Todo
-rename todo name = todo {name=name}
-
 --- 
 --- Defaults and templates
 --- 
+data TodoTemplate = TodoTemplate 
+  { completed' :: Bool
+  , syncStatus' :: SyncStatus} 
+  deriving (Eq, Show, Generic)
 
-baseTodo :: Todo
-baseTodo = Todo {completed=False, syncStatus=FromServer}
+baseTodo :: TodoTemplate
+baseTodo = TodoTemplate {completed'=False, syncStatus'=FromServer}
+
+todoFromTemplate :: TodoTemplate -> UUID -> Name -> Todo
+todoFromTemplate temp uuid name = Todo{id=uuid, name=name, completed=temp.completed', syncStatus=temp.syncStatus'}
+
 
 mock1, mock2, mock3, mock4 :: Todo
-mock1 = baseTodo {id="todo-1sgsgerjkg", name="Eat", completed=True}
-mock2 = baseTodo {id="todo-2sigisgoel", name="Sleep"}
-mock3 = baseTodo {id="todo-3efkiffieu", name="Repeat"}
-mock4 = baseTodo {id="todo-efwpekkgwm", name="Repeat"}
+mock1 = modTodo (Completed True) $ todoFromTemplate baseTodo "todo-1sgsgerjkg" "Eat"
+mock2 = todoFromTemplate baseTodo "todo-2sigisgoel" "Sleep"
+mock3 = todoFromTemplate baseTodo "todo-3efkiffieu" "Repeat"
+mock4 = todoFromTemplate baseTodo "todo-efwpekkgwm" "Repeat"
 
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do
