@@ -6,12 +6,13 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), TodoList, Todo(..), UUID,
+import Models (State(State, todos), TodoVar, TodoList, Todo(..), UUID,
     postTodo, postTodos, deleteTodo, putTodo, initialize, insertMocks)
 import Network (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
+import qualified Data.Text.Lazy as L
 import Data.Text.Lazy.Encoding (encodeUtf8)
 
 ---
@@ -69,26 +70,24 @@ type EPmeta = "serverConnected" :> Get '[JSON] Bool
 handleStatusMessage :: AppM Bool
 handleStatusMessage = return True
 
+handleGeneric :: a -> (a -> TodoVar -> IO (Either L.Text a)) -> AppM a
+handleGeneric var f = do
+    State{todos = todoVar} <- ask
+    response <- liftIO $ f var todoVar
+    case response of 
+        Right result -> return result
+        Left msg -> throwError err503 { errBody = encodeUtf8 msg }
+
 type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 
 handlePostTodo :: Todo -> AppM Todo
-handlePostTodo newTodo = do
-    State{todos = todoVar} <- ask
-    response <- liftIO $ postTodo newTodo todoVar
-    case response of 
-        Right todo -> return todo
-        Left msg -> throwError err503 { errBody = encodeUtf8 msg }
+handlePostTodo newTodo = handleGeneric newTodo postTodo
 
 
 type PostTodos = "postTodos" :> ReqBody '[JSON] [Todo] :> PostCreated '[JSON] [Todo]
 
 handlePostTodos :: [Todo] -> AppM [Todo]
-handlePostTodos newTodos = do
-    State{todos = todoVar} <- ask
-    response <- liftIO $ postTodos newTodos todoVar
-    case response of 
-        Right todos -> return todos 
-        Left msg -> throwError err503 { errBody = encodeUtf8 msg }
+handlePostTodos newTodos = handleGeneric newTodos postTodos
 
 type GetTodos = "getTodos" :> Get '[JSON] TodoList
 
