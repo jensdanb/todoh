@@ -6,8 +6,8 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), TodoList, Todo(..), UUID, 
-    initialize, insertTodo, insertMocks, deleteTodo, putTodo, insertTodos, todoExists, overlap')
+import Models (State(State, todos), TodoList, Todo(..), UUID,
+    postTodo, postTodos, deleteTodo, putTodo, initialize, insertMocks)
 import Network (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
@@ -74,26 +74,21 @@ type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 handlePostTodo :: Todo -> AppM Todo
 handlePostTodo newTodo = do
     State{todos = todoVar} <- ask
-    postAllowed <- liftIO $ not <$> todoExists todoVar newTodo
-    if postAllowed
-        then do 
-            liftIO $ insertTodo newTodo todoVar
-            return newTodo
-        else 
-            throwError $ error400idIsUsed newTodo
+    response <- liftIO $ postTodo newTodo todoVar
+    case response of 
+        Right todo -> return todo
+        Left msg -> throwError err503 { errBody = encodeUtf8 msg }
+
 
 type PostTodos = "postTodos" :> ReqBody '[JSON] [Todo] :> PostCreated '[JSON] [Todo]
 
 handlePostTodos :: [Todo] -> AppM [Todo]
 handlePostTodos newTodos = do
     State{todos = todoVar} <- ask
-    postAllowed <- liftIO $ not <$> overlap' todoVar newTodos
-    if postAllowed
-        then do 
-            liftIO $ insertTodos newTodos todoVar
-            return newTodos
-        else 
-            throwError error400idCollision
+    response <- liftIO $ postTodos newTodos todoVar
+    case response of 
+        Right todos -> return todos 
+        Left msg -> throwError err503 { errBody = encodeUtf8 msg }
 
 type GetTodos = "getTodos" :> Get '[JSON] TodoList
 
@@ -118,8 +113,3 @@ handlePutTodo newTodo = do
     liftIO $ putTodo newTodo todoVar
     return newTodo
 
-error400idIsUsed :: Todo -> ServerError
-error400idIsUsed newTodo = err400 { errBody = "Todo with ID " <> (encodeUtf8 newTodo.id) <> "already exists" }
-
-error400idCollision :: ServerError
-error400idCollision = err400 {errBody = "One of the IDs collided!"}
