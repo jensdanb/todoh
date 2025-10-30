@@ -67,7 +67,6 @@ modTodo (SyncStatus newVal) todo = todo {syncStatus=newVal}
 markSynced :: Todo -> Todo 
 markSynced = modTodo (SyncStatus FromServer)
 
--- Add
 addTodo :: Todo -> (TodoList -> TodoList)
 addTodo todo = (markSynced todo : )
 
@@ -138,17 +137,30 @@ postTodos todos tVar = do
       modifyTodoList (addTodos todos) tVar
       return $ Right todos
 
-deleteTodo :: UUID -> TodoVar -> IO ()
-deleteTodo uuid = modifyTodoList $ rmTodo uuid
+deleteTodo :: UUID -> TodoVar -> IO (Either L.Text UUID)
+deleteTodo uuid tVar = do 
+  tList <- readTVarIO tVar
+  exists <- return $ findById uuid tList
+  case exists of 
+    Nothing -> return $ Left $ "No Todo with ID " <> uuid <> " to delete"
+    Just _ -> do
+      modifyTodoList (rmTodo uuid) tVar
+      return $ Right uuid
 
-putTodo :: Todo -> TodoVar -> IO ()
-putTodo newTodo = modifyTodoList (map putter)
-  where 
-    putter :: Todo -> Todo 
-    putter oldTodo = 
-      if oldTodo.id == newTodo.id 
-        then newTodo { syncStatus=FromServer } 
-        else oldTodo
+putTodo :: Todo -> TodoVar -> IO (Either L.Text Todo)
+putTodo newTodo tVar = do 
+  alreadyExists <- todoExists tVar newTodo
+  case alreadyExists of 
+    False -> return $ Left $ "No Todo with ID " <> newTodo.id <> " to update"
+    True -> do 
+      modifyTodoList (map putter) tVar
+      return $ Right newTodo
+      where 
+        putter :: Todo -> Todo 
+        putter oldTodo = 
+          if oldTodo.id == newTodo.id 
+            then newTodo { syncStatus=FromServer } 
+            else oldTodo
 
 
 overlap' :: TodoVar -> [Todo] -> IO Bool

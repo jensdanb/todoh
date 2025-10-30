@@ -70,8 +70,16 @@ type EPmeta = "serverConnected" :> Get '[JSON] Bool
 handleStatusMessage :: AppM Bool
 handleStatusMessage = return True
 
-handleGeneric :: a -> (a -> TodoVar -> IO (Either L.Text a)) -> AppM a
-handleGeneric var f = do
+type GetTodos = "getTodos" :> Get '[JSON] TodoList
+
+handleGetTodos :: AppM TodoList
+handleGetTodos = do
+    State{todos = todoVar} <- ask
+    liftIO $ reverse <$> readTVarIO todoVar
+
+
+genericHandler :: a -> (a -> TodoVar -> IO (Either L.Text a)) -> AppM a
+genericHandler var f = do
     State{todos = todoVar} <- ask
     response <- liftIO $ f var todoVar
     case response of 
@@ -81,34 +89,20 @@ handleGeneric var f = do
 type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 
 handlePostTodo :: Todo -> AppM Todo
-handlePostTodo newTodo = handleGeneric newTodo postTodo
-
+handlePostTodo newTodo = genericHandler newTodo postTodo
 
 type PostTodos = "postTodos" :> ReqBody '[JSON] [Todo] :> PostCreated '[JSON] [Todo]
 
 handlePostTodos :: [Todo] -> AppM [Todo]
-handlePostTodos newTodos = handleGeneric newTodos postTodos
-
-type GetTodos = "getTodos" :> Get '[JSON] TodoList
-
-handleGetTodos :: AppM TodoList
-handleGetTodos = do
-    State{todos = todoVar} <- ask
-    liftIO $ reverse <$> readTVarIO todoVar
+handlePostTodos newTodos = genericHandler newTodos postTodos
 
 type DelTodo = "delTodo" :> ReqBody '[JSON] UUID :> Delete '[JSON] UUID
 
 handleDelTodo :: UUID -> AppM UUID
-handleDelTodo uuid = do
-    State{todos = todoVar} <- ask
-    liftIO $ deleteTodo uuid todoVar
-    return uuid
+handleDelTodo uuid = genericHandler uuid deleteTodo
+    
 
 type PutTodo = "putTodo" :> ReqBody '[JSON] Todo :> Put '[JSON] Todo
 
 handlePutTodo :: Todo -> AppM Todo
-handlePutTodo newTodo = do
-    State{todos = todoVar} <- ask
-    liftIO $ putTodo newTodo todoVar
-    return newTodo
-
+handlePutTodo newTodo = genericHandler newTodo putTodo
