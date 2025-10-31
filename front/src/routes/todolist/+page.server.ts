@@ -5,21 +5,30 @@ import { apiBaseUrl, getJSON, requestErrorResponse } from "$lib/services/network
 // ------- //
 // Network //
 
-type BackEndPoint = "/serverConnected" | "/postTodo" | "/postTodos" | "/getTodos" | "/delTodo" | "/putTodo";
+type BackEndPoint = "/serverConnected" | "/postTodo" | "/postTodos" | "/getTodos" | "/delTodo" | "/putTodo" | "/putTodoVar";
 
-async function modifyingQuery (address: BackEndPoint, clientTodo: Todo | [Todo] | string) {
-    var method = "";
-    if (["/postTodo", "/postTodos"].includes(address)) {
-        method = "POST"
+function getMethod (address: BackEndPoint) {
+    switch (address) {
+        case "/postTodo":
+            return "POST";
+        case "/postTodos":
+            return "POST";
+        case "/putTodo":
+            return "PUT";
+        case "/putTodoVar":
+            return "PUT";
+        case "/delTodo":
+            return "DELETE";
+        default:
+            return requestErrorResponse(address);
     }
-    else if (["/putTodo"].includes(address)) {
-        method = "PUT"
-    }
-    else if (["/delTodo"].includes(address)) {
-        method = "DELETE"
-    }
-    else {return requestErrorResponse(address)};
+}
 
+async function todoQuery (address: BackEndPoint, clientTodo: Todo | [Todo]) {
+    var method = getMethod(address);
+    if (method instanceof Response) {
+        return method;
+    }
     const response = await fetch(apiBaseUrl + address, {
                 method: method,
                 body: JSON.stringify(clientTodo),
@@ -29,20 +38,24 @@ async function modifyingQuery (address: BackEndPoint, clientTodo: Todo | [Todo] 
     return response.json();
 };
 
+async function todoIdQuery(address: BackEndPoint, targetId: string, data?: any) {
+    
+}
+
 async function netPostTodo(newTodo: Todo) {
-    return await modifyingQuery('/postTodo', newTodo);
+    return await todoQuery('/postTodo', newTodo);
 };
 
 async function netPostTodos(newTodos: [Todo]) {
-    return await modifyingQuery('/postTodos', newTodos);
+    return await todoQuery('/postTodos', newTodos);
 };
 
 async function netPutTodo(newTodo: Todo) {
-    await modifyingQuery('/putTodo', newTodo);
+    await todoQuery('/putTodo', newTodo);
 };
 
 async function netDelTodo(id: string) {
-    await modifyingQuery('/delTodo', id);
+    await todoQuery('/delTodo', id);
 };
 
 // network  //

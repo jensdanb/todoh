@@ -112,7 +112,7 @@ type PutTodo = "putTodo" :> ReqBody '[JSON] Todo :> Put '[JSON] Todo
 handlePutTodo :: Todo -> AppM Todo
 handlePutTodo newTodo = genericHandler newTodo putTodo
 
-type PutTodoVariable = "putTodo" :> ReqBody '[JSON] TodoVariableRequest :> Put '[JSON] Todo
+type PutTodoVariable = "putTodoVar" :> ReqBody '[JSON] TodoVariableRequest :> Put '[JSON] Todo
 
 handlePutTodoVariable :: TodoVariableRequest -> AppM Todo
 handlePutTodoVariable (TodoVariableRequest reqId reqValue) = do
