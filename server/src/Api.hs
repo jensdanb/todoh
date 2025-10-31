@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -7,11 +8,13 @@ module Api where
 
 import Servant
 import Models (State(State, todos), TodoVar, TodoList, Todo(..), UUID,
-    postTodo, postTodos, deleteTodo, putTodo, initialize, insertMocks)
+    postTodo, postTodos, deleteTodo, putTodo, initialize, insertMocks, TodoVariable, updateRecord)
 import Network (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
+import Data.Aeson (ToJSON, FromJSON)
+import GHC.Generics (Generic)
 import qualified Data.Text.Lazy as L
 import Data.Text.Lazy.Encoding (encodeUtf8)
 
@@ -49,6 +52,7 @@ type STMAPI = EPmeta
         :<|> GetTodos
         :<|> DelTodo
         :<|> PutTodo
+        :<|> PutTodoVariable
 
 serveSTM :: ServerT STMAPI AppM
 serveSTM = handleStatusMessage
@@ -57,6 +61,7 @@ serveSTM = handleStatusMessage
         :<|> handleGetTodos
         :<|> handleDelTodo
         :<|> handlePutTodo
+        :<|> handlePutTodoVariable
 
 stmAPI :: Proxy STMAPI
 stmAPI = Proxy
@@ -106,3 +111,21 @@ type PutTodo = "putTodo" :> ReqBody '[JSON] Todo :> Put '[JSON] Todo
 
 handlePutTodo :: Todo -> AppM Todo
 handlePutTodo newTodo = genericHandler newTodo putTodo
+
+type PutTodoVariable = "putTodo" :> ReqBody '[JSON] TodoVariableRequest :> Put '[JSON] Todo
+
+handlePutTodoVariable :: TodoVariableRequest -> AppM Todo
+handlePutTodoVariable (TodoVariableRequest reqId reqValue) = do
+    State{todos = todoVar} <- ask 
+    response <- liftIO $ updateRecord reqId reqValue todoVar
+    case response of 
+        Right result -> return result
+        Left msg -> throwError err503 { errBody = encodeUtf8 msg }
+
+data TodoVariableRequest = TodoVariableRequest
+  { reqId    :: UUID
+  , reqValue :: TodoVariable
+  } deriving (Show, Generic)
+
+instance FromJSON TodoVariableRequest
+instance ToJSON TodoVariableRequest

@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 {-# LANGUAGE GADTs #-}
 
-module Models (State(State, todos), TodoVar, TodoList, Todo(..), UUID,
-    initialize, postTodo, insertMocks, deleteTodo, putTodo, postTodos, todoExists, overlap') where
+module Models (State(State, todos), TodoVar, TodoList, Todo(..), TodoVariable(..), UUID,
+    initialize, postTodo, insertMocks, deleteTodo, putTodo, postTodos, updateRecord) where
 
 import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import qualified Data.Text.Lazy as L
-import Data.List (find, intersect, null)
-import Control.Concurrent.STM (TVar, newTVarIO, atomically, modifyTVar, readTVarIO)
+import Data.List (find)
+import Control.Concurrent.STM (TVar, newTVarIO, atomically, modifyTVar, readTVarIO, readTVar, STM, writeTVar)
 import Control.Monad (void)
 import Data.Maybe (isJust)
 
@@ -37,11 +37,12 @@ data SyncStatus = FromServer | FromServerAndEdited | FreshFish | Posted
 instance ToJSON SyncStatus
 instance FromJSON SyncStatus
 
-data TodoValue = Name Name | Completed Bool | SyncStatus SyncStatus
+
+data TodoVariable = Name Name | Completed Bool | SyncStatus SyncStatus
   deriving (Eq, Show, Generic)
 
-instance ToJSON TodoValue
-instance FromJSON TodoValue
+instance ToJSON TodoVariable
+instance FromJSON TodoVariable
 
 --- 
 --- State
@@ -59,7 +60,7 @@ initialize = newTVarIO []
 --- Logic
 --- 
 
-modTodo :: TodoValue -> Todo -> Todo
+modTodo :: TodoVariable -> Todo -> Todo
 modTodo (Name newVal) todo = todo {name=newVal}
 modTodo (Completed newVal) todo = todo {completed=newVal}
 modTodo (SyncStatus newVal) todo = todo {syncStatus=newVal}
@@ -112,6 +113,23 @@ mock4 = todoFromTemplate baseTodo "todo-efwpekkgwm" "Repeat"
 
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
+
+
+updateById :: UUID -> (Todo -> Todo) -> TodoVar -> STM (Either L.Text Todo)
+updateById uuid updateFn stateTVar = do
+  records <- readTVar stateTVar
+  let (before, rest) = break (\r -> r.id == uuid) records
+  case rest of
+    [] -> return $ Left "Already Exists"  -- No match, do nothing
+    (r:after) -> do
+      let updatedRecord = updateFn r
+          newRecords = before <> (updatedRecord : after)
+      writeTVar stateTVar newRecords
+      return $ Right updatedRecord
+
+updateRecord :: UUID -> TodoVariable -> TodoVar -> IO (Either L.Text Todo)
+updateRecord uuid val tVar =  atomically $ updateById uuid (modTodo val) tVar
+
 
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do
