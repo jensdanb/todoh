@@ -7,7 +7,7 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), TodoVar, TodoList, Todo(..), UUID, ErrorMsg(..),
+import Models (State(State, todos), TodoVar, TodoList, Todo(..), UUID,
     postTodo, postTodos, deleteTodo, putTodo, initialize, insertMocks, TodoVariable, updateRecord)
 import Network (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
@@ -15,8 +15,6 @@ import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
 import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
-import qualified Data.Text.Lazy as L
-import Data.Text.Lazy.Encoding (encodeUtf8)
 
 ---
 --- Server 
@@ -83,18 +81,14 @@ handleGetTodos = do
     liftIO $ reverse <$> readTVarIO todoVar
 
 
-genericHandler :: a -> (a -> TodoVar -> IO (Either ErrorMsg a)) -> AppM a
+genericHandler :: a -> (a -> TodoVar -> IO (Either ServerError a)) -> AppM a
 genericHandler var f = do
     State{todos = todoVar} <- ask
     response <- liftIO $ f var todoVar
     case response of 
         Right result -> return result
-        Left msg -> throwError $ msgToError msg
+        Left err -> throwError err
 
-msgToError :: ErrorMsg -> ServerError
-msgToError (E404 msg) = err404 { errBody = encodeUtf8 msg }
-msgToError (E409 msg) = err409 { errBody = encodeUtf8 msg }
-msgToError (E410 msg) = err410 { errBody = encodeUtf8 msg }
 
 type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 
@@ -125,7 +119,7 @@ handlePutTodoVariable (TodoVariableRequest reqId reqData) = do
     response <- liftIO $ updateRecord reqId reqData todoVar
     case response of 
         Right result -> return result
-        Left msg -> throwError $ msgToError msg
+        Left err -> throwError err
 
 data TodoVariableRequest = TodoVariableRequest
   { reqId    :: UUID
