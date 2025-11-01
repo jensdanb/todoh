@@ -5,6 +5,7 @@
     import TaskList from "./TaskList.svelte";
 
     let { data } = $props();
+    $inspect(data);
 
     let filterTaskCompleted = $derived((task: Todo) => {
         if (todo_filter.selected=="All") {return true}

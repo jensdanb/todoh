@@ -1,5 +1,5 @@
-import type { Cookies, Actions } from '@sveltejs/kit';
-import { Todo, type SyncStatus } from '$lib/services/types';
+import { type Cookies, type Actions, fail } from '@sveltejs/kit';
+import { Todo, type SyncStatus, CustomError } from '$lib/services/types';
 import { apiBaseUrl, getJSON, requestErrorResponse } from "$lib/services/network";
 
 // ------- //
@@ -16,6 +16,17 @@ METHOD_MAP.set("/delTodo", "DELETE");
 METHOD_MAP.set("/putTodo", "PUT");
 METHOD_MAP.set("/putTodoVar", "PUT");
 
+async function handleError(response: Response) {
+    let errorMessage = 'Network response was not ok';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+            // If parsing fails, use the default message
+        }
+        throw new Error(errorMessage);
+        
+}
 
 async function todoQuery (address: BackEndPoint, clientTodo: Todo | [Todo] | string) {
     const method = METHOD_MAP.get(address);
@@ -26,8 +37,12 @@ async function todoQuery (address: BackEndPoint, clientTodo: Todo | [Todo] | str
                 body: JSON.stringify(clientTodo),
                 headers: {"Content-type": "application/json; charset=UTF-8"}
         })
+    
     console.log(response);
-    if (!response.ok) throw new Error('Network response was not ok')
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new CustomError(errorData.message || 'Network response was not ok', response.status);
+    }
     return response.json();
 };
 
@@ -49,7 +64,6 @@ async function todoIdQuery(address: BackEndPoint,
     else {
         reqBody = {"reqId": targetId}
     }
-    
     console.log(reqBody);
 
     const response = await fetch(apiBaseUrl + address, {
@@ -58,7 +72,10 @@ async function todoIdQuery(address: BackEndPoint,
         headers: {"Content-type": "application/json; charset=UTF-8"}
         })
     console.log(response);
-    if (!response.ok) throw new Error('Network response was not ok')
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new CustomError(errorData.message || 'Network response was not ok', response.status);
+    }
     return response.json();
 }
 
@@ -124,7 +141,16 @@ export const actions: Actions = {
     delete: async ({cookies, request}) => {
         const formData = await request.formData();
         const todoId: string = formData.get('rename-id') as string;
-        await netDelTodo(todoId);
+        try {
+            await netDelTodo(todoId);
+            return { success: true};
+        } catch (error) {
+            console.log(error);
+            if (error instanceof CustomError) {
+                return fail(error.status, {error: error.message});
+            }
+            return fail(500, {error: 'An unknown error occurred'});
+        }
     }
 };
 
