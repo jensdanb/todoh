@@ -115,16 +115,16 @@ handlePutTodo newTodo = genericHandler newTodo putTodo
 type PutTodoVariable = "putTodoVar" :> ReqBody '[JSON] TodoVariableRequest :> Put '[JSON] Todo
 
 handlePutTodoVariable :: TodoVariableRequest -> AppM Todo
-handlePutTodoVariable (TodoVariableRequest reqId reqValue) = do
+handlePutTodoVariable (TodoVariableRequest reqId reqData) = do
     State{todos = todoVar} <- ask 
-    response <- liftIO $ updateRecord reqId reqValue todoVar
+    response <- liftIO $ updateRecord reqId reqData todoVar
     case response of 
         Right result -> return result
         Left msg -> throwError err503 { errBody = encodeUtf8 msg }
 
 data TodoVariableRequest = TodoVariableRequest
   { reqId    :: UUID
-  , reqValue :: TodoVariable
+  , reqData :: TodoVariable
   } deriving (Show, Generic)
 
 instance FromJSON TodoVariableRequest

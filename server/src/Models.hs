@@ -4,7 +4,7 @@
 module Models (State(State, todos), TodoVar, TodoList, Todo(..), TodoVariable(..), UUID,
     initialize, postTodo, insertMocks, deleteTodo, putTodo, postTodos, updateRecord) where
 
-import Data.Aeson (ToJSON, FromJSON)
+import Data.Aeson (ToJSON (toJSON), FromJSON (parseJSON), sumEncoding, genericToJSON, defaultOptions, SumEncoding (TaggedObject), genericParseJSON)
 import GHC.Generics (Generic)
 import qualified Data.Text.Lazy as L
 import Data.List (find)
@@ -41,8 +41,12 @@ instance FromJSON SyncStatus
 data TodoVariable = Name Name | Completed Bool | SyncStatus SyncStatus
   deriving (Eq, Show, Generic)
 
-instance ToJSON TodoVariable
-instance FromJSON TodoVariable
+instance ToJSON TodoVariable where
+  toJSON = genericToJSON defaultOptions
+    { sumEncoding = TaggedObject "label" "value" }
+instance FromJSON TodoVariable where 
+  parseJSON = genericParseJSON defaultOptions
+    { sumEncoding = TaggedObject "label" "value" }
 
 --- 
 --- State

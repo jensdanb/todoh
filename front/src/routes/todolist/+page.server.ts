@@ -1,5 +1,5 @@
 import type { Cookies, Actions } from '@sveltejs/kit';
-import { Todo } from '$lib/services/types';
+import { Todo, type SyncStatus } from '$lib/services/types';
 import { apiBaseUrl, getJSON, requestErrorResponse } from "$lib/services/network";
 
 // ------- //
@@ -25,10 +25,11 @@ function getMethod (address: BackEndPoint) {
 }
 
 async function todoQuery (address: BackEndPoint, clientTodo: Todo | [Todo]) {
-    var method = getMethod(address);
+    const method = getMethod(address);
     if (method instanceof Response) {
         return method;
     }
+    console.log(clientTodo);
     const response = await fetch(apiBaseUrl + address, {
                 method: method,
                 body: JSON.stringify(clientTodo),
@@ -38,8 +39,37 @@ async function todoQuery (address: BackEndPoint, clientTodo: Todo | [Todo]) {
     return response.json();
 };
 
-async function todoIdQuery(address: BackEndPoint, targetId: string, data?: any) {
+
+async function todoIdQuery(address: BackEndPoint, 
+                            targetId: string, 
+                            dataField?: "Name" | "Completed" | "SyncStatus" , 
+                            data?: string | boolean | SyncStatus) {
+    const method = getMethod(address);
+    if (method instanceof Response) {
+        return method;
+    }
+    var reqBody
+    if (dataField && data !== undefined) {
+        reqBody = {
+            "reqId": targetId, 
+            "reqData": {
+                "label": dataField,
+                "value": data
+            }};
+    }
+    else {
+        reqBody = {"reqId": targetId}
+    }
     
+    console.log(reqBody);
+
+    const response = await fetch(apiBaseUrl + address, {
+        method: method,
+        body: JSON.stringify(reqBody),
+        headers: {"Content-type": "application/json; charset=UTF-8"}
+        })
+    if (!response.ok) throw new Error('Network response was not ok')
+    return response.json();
 }
 
 async function netPostTodo(newTodo: Todo) {
@@ -57,6 +87,10 @@ async function netPutTodo(newTodo: Todo) {
 async function netDelTodo(id: string) {
     await todoQuery('/delTodo', id);
 };
+
+async function netToggleTodo(id:string, toggleTo: boolean) {
+    await todoIdQuery('/putTodoVar', id, "Completed", toggleTo);
+}
 
 // network  //
 // local     //
@@ -85,7 +119,7 @@ export const actions: Actions = {
     toggle: async ({cookies, request}) => {
         const formData = await request.formData();
         const todo: Todo = JSON.parse(formData.get('rename-id') as string);
-        await netPutTodo({...todo, completed: !todo.completed});
+        await netToggleTodo(todo.id, !todo.completed);
     }, 
     rename: async ({cookies, request}) => {
         const formData = await request.formData();
