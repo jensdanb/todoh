@@ -5,49 +5,38 @@ import { apiBaseUrl, getJSON, requestErrorResponse } from "$lib/services/network
 // ------- //
 // Network //
 
-type BackEndPoint = "/serverConnected" | "/postTodo" | "/postTodos" | "/getTodos" | "/delTodo" | "/putTodo" | "/putTodoVar";
+type BackEndPoint = "/serverConnected" | "/getTodos" | "/postTodo" | "/postTodos" | "/delTodo" | "/putTodo" | "/putTodoVar";
 
-function getMethod (address: BackEndPoint) {
-    switch (address) {
-        case "/postTodo":
-            return "POST";
-        case "/postTodos":
-            return "POST";
-        case "/putTodo":
-            return "PUT";
-        case "/putTodoVar":
-            return "PUT";
-        case "/delTodo":
-            return "DELETE";
-        default:
-            return requestErrorResponse(address);
-    }
-}
+const METHOD_MAP = new Map<BackEndPoint, string>();
+METHOD_MAP.set("/serverConnected", "GET");
+METHOD_MAP.set("/getTodos", "GET");
+METHOD_MAP.set("/postTodo", "POST");
+METHOD_MAP.set("/postTodos", "POST");
+METHOD_MAP.set("/delTodo", "DELETE");
+METHOD_MAP.set("/putTodo", "PUT");
+METHOD_MAP.set("/putTodoVar", "PUT");
 
-async function todoQuery (address: BackEndPoint, clientTodo: Todo | [Todo]) {
-    const method = getMethod(address);
-    if (method instanceof Response) {
-        return method;
-    }
+
+async function todoQuery (address: BackEndPoint, clientTodo: Todo | [Todo] | string) {
+    const method = METHOD_MAP.get(address);
+
     console.log(clientTodo);
     const response = await fetch(apiBaseUrl + address, {
                 method: method,
                 body: JSON.stringify(clientTodo),
                 headers: {"Content-type": "application/json; charset=UTF-8"}
         })
+    console.log(response);
     if (!response.ok) throw new Error('Network response was not ok')
     return response.json();
 };
-
 
 async function todoIdQuery(address: BackEndPoint, 
                             targetId: string, 
                             dataField?: "Name" | "Completed" | "SyncStatus" , 
                             data?: string | boolean | SyncStatus) {
-    const method = getMethod(address);
-    if (method instanceof Response) {
-        return method;
-    }
+    const method = METHOD_MAP.get(address);
+
     var reqBody
     if (dataField && data !== undefined) {
         reqBody = {
@@ -68,6 +57,7 @@ async function todoIdQuery(address: BackEndPoint,
         body: JSON.stringify(reqBody),
         headers: {"Content-type": "application/json; charset=UTF-8"}
         })
+    console.log(response);
     if (!response.ok) throw new Error('Network response was not ok')
     return response.json();
 }
@@ -90,6 +80,10 @@ async function netDelTodo(id: string) {
 
 async function netToggleTodo(id:string, toggleTo: boolean) {
     await todoIdQuery('/putTodoVar', id, "Completed", toggleTo);
+}
+
+async function netRenameTodo(id:string, newName: string) {
+    await todoIdQuery('/putTodoVar', id, "Name", newName);
 }
 
 // network  //
@@ -125,7 +119,7 @@ export const actions: Actions = {
         const formData = await request.formData();
         const todo: Todo = JSON.parse(formData.get('rename-id') as string);
         const newDescription = formData.get('new name') as string;
-        await netPutTodo({...todo, name: newDescription});
+        await netRenameTodo(todo.id, newDescription);
     }, 
     delete: async ({cookies, request}) => {
         const formData = await request.formData();
