@@ -1,7 +1,8 @@
 {-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE InstanceSigs #-}
 
-module Models (State(State, todos), TodoVar, TodoList, Todo(..), TodoVariable(..), UUID,
+module Models (State(State, todos), TodoVar, TodoList, Todo(..), TodoVariable(..), UUID, ErrorMsg(..),
     initialize, postTodo, insertMocks, deleteTodo, putTodo, postTodos, updateRecord) where
 
 import Data.Aeson (ToJSON (toJSON), FromJSON (parseJSON), sumEncoding, genericToJSON, defaultOptions, SumEncoding (TaggedObject), genericParseJSON)
@@ -104,76 +105,87 @@ baseTodo = TodoTemplate {completed'=False, syncStatus'=FromServer}
 todoFromTemplate :: TodoTemplate -> UUID -> Name -> Todo
 todoFromTemplate temp uuid name = Todo{id=uuid, name=name, completed=temp.completed', syncStatus=temp.syncStatus'}
 
-
 mock1, mock2, mock3, mock4 :: Todo
 mock1 = modTodo (Completed True) $ todoFromTemplate baseTodo "todo-1sgsgerjkg" "Eat"
 mock2 = todoFromTemplate baseTodo "todo-2sigisgoel" "Sleep"
 mock3 = todoFromTemplate baseTodo "todo-3efkiffieu" "Repeat"
 mock4 = todoFromTemplate baseTodo "todo-efwpekkgwm" "Repeat"
 
+insertMocks :: TodoVar -> IO ()
+insertMocks todoVar = do
+  void $ postTodos [mock1, mock2] todoVar
+  void $ postTodos [mock3, mock4] todoVar
+
 --- 
 --- TVar interface
 ---
+
+data ErrorMsg = E404 L.Text | E409 L.Text | E410 L.Text
+  deriving (Eq, Generic)
+
+instance Show ErrorMsg where 
+  show :: ErrorMsg -> String
+  show (E404 t) = "404 Not Found Error: " <> show t
+  show (E409 t) = "409 Conflict Error: " <> show t
+  show (E410 t) = "410 Gone Error: " <> show t
+
+instance ToJSON ErrorMsg
+instance FromJSON ErrorMsg
 
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
 
 
-updateById :: UUID -> (Todo -> Todo) -> TodoVar -> STM (Either L.Text Todo)
+updateById :: UUID -> (Todo -> Todo) -> TodoVar -> STM (Either ErrorMsg Todo)
 updateById uuid updateFn stateTVar = do
   records <- readTVar stateTVar
   let (before, rest) = break (\r -> r.id == uuid) records
   case rest of
-    [] -> return $ Left "Already Exists"  -- No match, do nothing
+    [] -> return $ Left $ E409 ("No Todo with id " <> uuid)  -- No match, do nothing
     (r:after) -> do
       let updatedRecord = updateFn r
           newRecords = before <> (updatedRecord : after)
       writeTVar stateTVar newRecords
       return $ Right updatedRecord
 
-updateRecord :: UUID -> TodoVariable -> TodoVar -> IO (Either L.Text Todo)
+updateRecord :: UUID -> TodoVariable -> TodoVar -> IO (Either ErrorMsg Todo)
 updateRecord uuid val tVar =  atomically $ updateById uuid (modTodo val) tVar
 
 
-insertMocks :: TodoVar -> IO ()
-insertMocks todoVar = do
-  void $ postTodos [mock1, mock2] todoVar
-  void $ postTodos [mock3] todoVar
-  
 
-postTodo :: Todo -> TodoVar-> IO (Either L.Text Todo)
+postTodo :: Todo -> TodoVar-> IO (Either ErrorMsg Todo)
 postTodo todo tVar = do 
   alreadyExists <- todoExists tVar todo
   case alreadyExists of 
-    True -> return $ Left "Already Exists"
+    True -> return $ Left $ E409 ("Todo with id " <> todo.id <> " already Exists")
     False -> do 
       modifyTodoList (addTodo todo) tVar
       return $ Right todo
 
-postTodos :: [Todo] -> TodoVar -> IO (Either L.Text [Todo])
+postTodos :: [Todo] -> TodoVar -> IO (Either ErrorMsg [Todo])
 postTodos todos tVar = do 
   overlaps <- overlap' tVar todos
   case overlaps of 
-    True -> return $ Left "ID of a posted Todos is already in use."
+    True -> return $ Left $ E409 ("A posted Todo's ID is already in use")
     False -> do 
       modifyTodoList (addTodos todos) tVar
       return $ Right todos
 
-deleteTodo :: UUID -> TodoVar -> IO (Either L.Text UUID)
+deleteTodo :: UUID -> TodoVar -> IO (Either ErrorMsg UUID)
 deleteTodo uuid tVar = do 
   tList <- readTVarIO tVar
   exists <- return $ findById uuid tList
   case exists of 
-    Nothing -> return $ Left $ "No Todo with ID " <> uuid <> " to delete"
+    Nothing -> return $ Left $ E409 ("No Todo with ID " <> uuid)
     Just _ -> do
       modifyTodoList (rmTodo uuid) tVar
       return $ Right uuid
 
-putTodo :: Todo -> TodoVar -> IO (Either L.Text Todo)
+putTodo :: Todo -> TodoVar -> IO (Either ErrorMsg Todo)
 putTodo newTodo tVar = do 
   alreadyExists <- todoExists tVar newTodo
   case alreadyExists of 
-    False -> return $ Left $ "No Todo with ID " <> newTodo.id <> " to update"
+    False -> return $ Left $ E409 ("No Todo with ID " <> newTodo.id)
     True -> do 
       modifyTodoList (map putter) tVar
       return $ Right newTodo
