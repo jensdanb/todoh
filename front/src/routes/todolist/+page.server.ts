@@ -1,4 +1,4 @@
-import { type Cookies, type Actions, fail } from '@sveltejs/kit';
+import { type Cookies, type Actions, fail, type ActionFailure } from '@sveltejs/kit';
 import { Todo, type SyncStatus, CustomError } from '$lib/services/types';
 import { apiBaseUrl, getJSON, requestErrorResponse } from "$lib/services/network";
 
@@ -119,8 +119,18 @@ export async function load({ cookies }: {cookies: Cookies}) {
         todos: todoList
     };
 }
+/*
+interface FormResult {
+    success?: boolean;
+    error?: ActionFailure<{
+        error: string;
+    }>;
+    values?: {
+        name: string;
+    };
+}*/
 
-
+export type FormResult = ActionFailure<{error: string;}> | {success: boolean}
 
 export const actions: Actions = {
 	create: async ({ cookies, request }) => {
@@ -138,19 +148,18 @@ export const actions: Actions = {
         const newDescription = formData.get('new name') as string;
         await netRenameTodo(todo.id, newDescription);
     }, 
-    delete: async ({cookies, request}) => {
+    delete: async ({cookies, request}): Promise<FormResult> => {
         const formData = await request.formData();
         const todoId: string = formData.get('rename-id') as string;
         try {
             await netDelTodo(todoId);
             return { success: true};
         } catch (error) {
-            console.log(error);
             if (error instanceof CustomError) {
                 return fail(error.status, {error: error.message});
             }
             return fail(500, {error: 'An unknown error occurred'});
         }
     }
-};
+} satisfies Actions;
 

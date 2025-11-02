@@ -1,8 +1,12 @@
 <script lang="ts">
-    import { Todo } from '$lib/services/types.ts';
+    import { Todo } from '$lib/services/types';
     import { enhance } from '$app/forms';
-    import { localPut, deleteTodo } from '$lib/services/database';
-    let { todo } = $props();
+    import type { ActionData } from './$types';
+    
+    interface TaskCProps {}
+    
+    let { todo, form } = $props<{todo: Todo, form: ActionData | null}>();
+    
     let todoS: string = $derived(JSON.stringify(todo));
     let isCompleted: boolean = $derived(todo.completed)
 

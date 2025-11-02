@@ -1,8 +1,14 @@
 <script lang="ts">
+    import type { Todo } from "$lib/services/types";
+    import type { ActionData } from "./$types";
     import { todo_filter } from "./shared.svelte";
     import TaskC from './TaskC.svelte';
 
-    let { todos, filterTaskCompleted } = $props();
+    let { todos, form, filterTaskCompleted } = $props<{
+        todos: [Todo], 
+        form: ActionData | null, 
+        filterTaskCompleted: (task: Todo) => boolean 
+        }>();
 </script>
 
 <div class="card">
@@ -32,7 +38,7 @@
     <ul class="card2">
 		{#each todos as todo (todo.id)}
             {#if filterTaskCompleted(todo)}
-			    <TaskC {todo} />
+			    <TaskC {todo} {form} />
             {/if}
 		{/each}
 	</ul>
