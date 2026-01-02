@@ -10,11 +10,12 @@ import Servant
 import Models (State(State, todos), TodoVar, TodoList, Todo(..), UUID,
     postTodo, postTodos, deleteTodo, putTodo, initialize, insertMocks, TodoVariable, updateRecord)
 import Network (runServerWithCors)
-import Control.Concurrent.STM (readTVarIO)
+import Control.Concurrent.STM (readTVarIO, atomically)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
 import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
+import Control.Monad.STM (STM)
 
 ---
 --- Server 
@@ -37,7 +38,7 @@ runStmServer port = do
 runStmServerWithMocks :: Int -> IO ()
 runStmServerWithMocks port = do
     startState <- initialize
-    liftIO $ insertMocks startState
+    atomically $ insertMocks startState
     runServerWithCors (stmApp (State startState)) port
 
 ---
@@ -81,10 +82,11 @@ handleGetTodos = do
     liftIO $ reverse <$> readTVarIO todoVar
 
 
-genericHandler :: a -> (a -> TodoVar -> IO (Either ServerError a)) -> AppM a
+genericHandler :: a -> (a -> TodoVar -> STM (Either ServerError a)) -> AppM a
 genericHandler var f = do
+
     State{todos = todoVar} <- ask
-    response <- liftIO $ f var todoVar
+    response <- liftIO $ atomically $ f var todoVar
     case response of 
         Right result -> return result
         Left err -> throwError err
@@ -116,7 +118,7 @@ type PutTodoVariable = "putTodoVar" :> ReqBody '[JSON] TodoVariableRequest :> Pu
 handlePutTodoVariable :: TodoVariableRequest -> AppM Todo
 handlePutTodoVariable (TodoVariableRequest reqId reqData) = do
     State{todos = todoVar} <- ask 
-    response <- liftIO $ updateRecord reqId reqData todoVar
+    response <- liftIO $ atomically $ updateRecord reqId reqData todoVar
     case response of 
         Right result -> return result
         Left err -> throwError err

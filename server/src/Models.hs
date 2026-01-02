@@ -64,7 +64,6 @@ newtype State = State {
   todos :: TodoVar
   } deriving (Generic)
 
-
 initialize :: IO TodoVar
 initialize = newTVarIO []
 
@@ -132,7 +131,7 @@ mock3 = todoFromTemplate baseTodo "todo-3efkiffieu" "Repeat"
 mock4 = todoFromTemplate baseTodo "todo-efwpekkgwm" "Repeat"
 
 
-insertMocks :: TodoVar -> IO ()
+insertMocks :: TodoVar -> STM ()
 insertMocks todoVar = do
   void $ postTodos [mock1, mock2] todoVar
   void $ postTodos [mock3, mock4] todoVar
@@ -141,8 +140,8 @@ insertMocks todoVar = do
 --- TVar interface
 ---
 
-modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
-modifyTodoList f tVar = atomically $ modifyTVar tVar f
+modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> STM ()
+modifyTodoList f tVar = modifyTVar tVar f
 
 
 updateById :: UUID -> (Todo -> Todo) -> TodoVar -> STM (Either ServerError Todo)
@@ -158,11 +157,11 @@ updateById uuid updateFn stateTVar = do
       return $ Right updatedRecord
 
 
-updateRecord :: UUID -> TodoVariable -> TodoVar -> IO (Either ServerError Todo)
-updateRecord uuid val tVar =  atomically $ updateById uuid (modTodo val) tVar
+updateRecord :: UUID -> TodoVariable -> TodoVar -> STM (Either ServerError Todo)
+updateRecord uuid val tVar =  updateById uuid (modTodo val) tVar
 
 
-postTodo :: Todo -> TodoVar-> IO (Either ServerError Todo)
+postTodo :: Todo -> TodoVar-> STM (Either ServerError Todo)
 postTodo todo tVar = do 
   alreadyExists <- todoExists tVar todo
   case alreadyExists of 
@@ -172,7 +171,7 @@ postTodo todo tVar = do
       return $ Right todo
 
 
-postTodos :: [Todo] -> TodoVar -> IO (Either ServerError [Todo])
+postTodos :: [Todo] -> TodoVar -> STM (Either ServerError [Todo])
 postTodos todos tVar = do 
   overlaps <- overlap' tVar todos
   case overlaps of 
@@ -182,9 +181,9 @@ postTodos todos tVar = do
       return $ Right todos
 
 
-deleteTodo :: UUID -> TodoVar -> IO (Either ServerError UUID)
+deleteTodo :: UUID -> TodoVar -> STM (Either ServerError UUID)
 deleteTodo uuid tVar = do 
-  tList <- readTVarIO tVar
+  tList <- readTVar tVar
   exists <- return $ findById uuid tList
   case exists of 
     Nothing -> return $ Left err409 {errBody = ("No Todo with ID " <> encodeUtf8 uuid)}
@@ -193,7 +192,7 @@ deleteTodo uuid tVar = do
       return $ Right uuid
 
 
-putTodo :: Todo -> TodoVar -> IO (Either ServerError Todo)
+putTodo :: Todo -> TodoVar -> STM (Either ServerError Todo)
 putTodo newTodo tVar = do 
   alreadyExists <- todoExists tVar newTodo
   case alreadyExists of 
@@ -209,14 +208,14 @@ putTodo newTodo tVar = do
             else oldTodo
 
 
-overlap' :: TodoVar -> [Todo] -> IO Bool
+overlap' :: TodoVar -> [Todo] -> STM Bool
 overlap' tVar todos = do 
-    tList <- readTVarIO tVar
+    tList <- readTVar tVar
     return $ overlap tList todos 
 
 
-todoExists :: TodoVar -> Todo -> IO (Bool)
+todoExists :: TodoVar -> Todo -> STM (Bool)
 todoExists tVar todo = do 
-    tList <- readTVarIO tVar
+    tList <- readTVar tVar
     let foundMatch = findById todo.id tList
     return $ isJust foundMatch
