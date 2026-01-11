@@ -1,18 +1,21 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Api where
 
 import Servant
-import Models (State(State, todos), TodoList, Todo(..), UUID, 
-    initialize, insertTodo, insertMocks, deleteTodo, putTodo, insertTodos, todoExists, overlap')
+import Models (State(State, todos), TodoVar, TodoList, Todo(..), UUID,
+    postTodo, postTodos, deleteTodo, putTodo, initialize, insertMocks, TodoVariable, updateRecord)
 import Network (runServerWithCors)
-import Control.Concurrent.STM (readTVarIO)
+import Control.Concurrent.STM (readTVarIO, atomically)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
-import Data.Text.Lazy.Encoding (encodeUtf8)
+import Data.Aeson (ToJSON, FromJSON)
+import GHC.Generics (Generic)
+import Control.Monad.STM (STM)
 
 ---
 --- Server 
@@ -35,7 +38,7 @@ runStmServer port = do
 runStmServerWithMocks :: Int -> IO ()
 runStmServerWithMocks port = do
     startState <- initialize
-    liftIO $ insertMocks startState
+    atomically $ insertMocks startState
     runServerWithCors (stmApp (State startState)) port
 
 ---
@@ -48,6 +51,7 @@ type STMAPI = EPmeta
         :<|> GetTodos
         :<|> DelTodo
         :<|> PutTodo
+        :<|> PutTodoVariable
 
 serveSTM :: ServerT STMAPI AppM
 serveSTM = handleStatusMessage
@@ -56,6 +60,7 @@ serveSTM = handleStatusMessage
         :<|> handleGetTodos
         :<|> handleDelTodo
         :<|> handlePutTodo
+        :<|> handlePutTodoVariable
 
 stmAPI :: Proxy STMAPI
 stmAPI = Proxy
@@ -69,32 +74,6 @@ type EPmeta = "serverConnected" :> Get '[JSON] Bool
 handleStatusMessage :: AppM Bool
 handleStatusMessage = return True
 
-type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
-
-handlePostTodo :: Todo -> AppM Todo
-handlePostTodo newTodo = do
-    State{todos = todoVar} <- ask
-    postAllowed <- liftIO $ not <$> todoExists todoVar newTodo
-    if postAllowed
-        then do 
-            liftIO $ insertTodo newTodo todoVar
-            return newTodo
-        else 
-            throwError $ error400idIsUsed newTodo
-
-type PostTodos = "postTodos" :> ReqBody '[JSON] [Todo] :> PostCreated '[JSON] [Todo]
-
-handlePostTodos :: [Todo] -> AppM [Todo]
-handlePostTodos newTodos = do
-    State{todos = todoVar} <- ask
-    postAllowed <- liftIO $ not <$> overlap' todoVar newTodos
-    if postAllowed
-        then do 
-            liftIO $ insertTodos newTodos todoVar
-            return newTodos
-        else 
-            throwError error400idCollision
-
 type GetTodos = "getTodos" :> Get '[JSON] TodoList
 
 handleGetTodos :: AppM TodoList
@@ -102,24 +81,52 @@ handleGetTodos = do
     State{todos = todoVar} <- ask
     liftIO $ reverse <$> readTVarIO todoVar
 
+
+genericHandler :: a -> (a -> TodoVar -> STM (Either ServerError a)) -> AppM a
+genericHandler var f = do
+
+    State{todos = todoVar} <- ask
+    response <- liftIO $ atomically $ f var todoVar
+    case response of 
+        Right result -> return result
+        Left err -> throwError err
+
+
+type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
+
+handlePostTodo :: Todo -> AppM Todo
+handlePostTodo newTodo = genericHandler newTodo postTodo
+
+type PostTodos = "postTodos" :> ReqBody '[JSON] [Todo] :> PostCreated '[JSON] [Todo]
+
+handlePostTodos :: [Todo] -> AppM [Todo]
+handlePostTodos newTodos = genericHandler newTodos postTodos
+
 type DelTodo = "delTodo" :> ReqBody '[JSON] UUID :> Delete '[JSON] UUID
 
 handleDelTodo :: UUID -> AppM UUID
-handleDelTodo uuid = do
-    State{todos = todoVar} <- ask
-    liftIO $ deleteTodo uuid todoVar
-    return uuid
+handleDelTodo uuid = genericHandler uuid deleteTodo
+    
 
 type PutTodo = "putTodo" :> ReqBody '[JSON] Todo :> Put '[JSON] Todo
 
 handlePutTodo :: Todo -> AppM Todo
-handlePutTodo newTodo = do
-    State{todos = todoVar} <- ask
-    liftIO $ putTodo newTodo todoVar
-    return newTodo
+handlePutTodo newTodo = genericHandler newTodo putTodo
 
-error400idIsUsed :: Todo -> ServerError
-error400idIsUsed newTodo = err400 { errBody = "Todo with ID " <> (encodeUtf8 newTodo.id) <> "already exists" }
+type PutTodoVariable = "putTodoVar" :> ReqBody '[JSON] TodoVariableRequest :> Put '[JSON] Todo
 
-error400idCollision :: ServerError
-error400idCollision = err400 {errBody = "One of the IDs collided!"}
+handlePutTodoVariable :: TodoVariableRequest -> AppM Todo
+handlePutTodoVariable (TodoVariableRequest reqId reqData) = do
+    State{todos = todoVar} <- ask 
+    response <- liftIO $ atomically $ updateRecord reqId reqData todoVar
+    case response of 
+        Right result -> return result
+        Left err -> throwError err
+
+data TodoVariableRequest = TodoVariableRequest
+  { reqId    :: UUID
+  , reqData :: TodoVariable
+  } deriving (Show, Generic)
+
+instance FromJSON TodoVariableRequest
+instance ToJSON TodoVariableRequest

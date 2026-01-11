@@ -1,34 +1,21 @@
-# syntax=docker/dockerfile:1
-
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/go/dockerfile-reference/
-
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
-ARG NODE_VERSION=23
-
+ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-alpine
-
-# Uncomment to use production node environment.
-#ENV NODE_ENV production
-
-RUN npm install serve -g
-
 
 WORKDIR /app
 
 COPY package.json .
 RUN npm i
 
-# Copy the rest of the source files into the image.
 COPY . .
-
 RUN npm run build
 
-# Expose the port that the application listens on.
+# ENV ORIGIN=https://todo.jensdanbolt.no
+
+# use if not on same machine and docker network as backend. IE; not part of the same "docker compose up". 
+# for dev on same machione but outside docker compose, use http://localhost/api
+# ENV BACKEND_URL=
+
 EXPOSE 3000
 
-# Run the application.
-CMD serve -s dist
+CMD node build
 # CMD npm run dev

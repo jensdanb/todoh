@@ -12,6 +12,8 @@ services:
     build: ./front
     # ports:
     #   - 5050:3000 
+    env_file:
+      - .env
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
